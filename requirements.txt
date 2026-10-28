@@ -2,3 +2,4 @@ Flask>=3.0,<4
 SQLAlchemy>=2.0,<3
 PyYAML>=6.0,<7
 pytest>=8.0,<10
+gunicorn==23.0.0
