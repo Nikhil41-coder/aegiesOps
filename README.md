@@ -175,3 +175,8 @@ The hosted default uses personal email/password accounts rather than a shared op
 See [account setup and security notes](docs/accounts.md) for the required Site URL/custom SMTP configuration and first-admin bootstrap. Auth migration `20261028230442_individual_accounts` has been applied to the Aegis Supabase project. No admin/password has been created. Existing local token tests remain supported explicitly, while the public default rejects the old shared token. Identity is connected to Supabase; the remediation audit store still uses SQLite and is ephemeral on the current free host.
 
 Validation: all 112 existing tests plus 27 account tests pass (139 total); live SQL permission probes and desktop/mobile mocked-provider browser flows pass. See `docs/accounts-validation.json`. Real user email delivery and sign-in are pending the owner's account/provider setup. Engine modules are unchanged. This remains a synthetic simulation.
+
+
+## Google sign-in
+
+The account dialog now supports **Continue with Google** through Supabase OAuth with PKCE, alongside email/password. New users remain viewers and all current role, session, same-origin and engine checks still apply. Configure a Google Web OAuth client and enable the provider in Supabase using the exact callback URLs in [the Google setup steps](docs/accounts.md#google-oauth), then manually deploy the latest commit on Render. No new dependencies or privileged app secrets are needed. All 145 tests pass; desktop/mobile callback flows were browser-tested with a mocked provider. Limitation: real Google login is pending owner-created Google credentials, provider configuration and a final consent test. Engine storage remains ephemeral SQLite on the current free host.

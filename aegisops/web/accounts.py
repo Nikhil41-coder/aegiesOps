@@ -1,9 +1,13 @@
 """Supabase Auth via same-origin endpoints; engine authority remains separate."""
 import json
 import os
+import base64
+import hashlib
+import re
+import secrets
 from functools import wraps
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlencode
 from urllib.request import Request, urlopen
 from uuid import UUID
 from flask import Blueprint, g, jsonify, request
@@ -159,6 +163,50 @@ def install_accounts(app, engine, mode):
             raise AuthFailure('Account sign-up is disabled in token test mode.', 403)
         client.call('/auth/v1/signup', credentials())  # Never forward user-supplied roles or metadata.
         return jsonify(message='Check your email to confirm your account, then sign in. New accounts are viewers.')
+
+    @bp.post('/oauth/start')
+    def oauth_start():
+        if mode != 'supabase':
+            raise AuthFailure('Google sign-in is disabled in token test mode.', 403)
+        if body().get('provider') != 'google':
+            raise ValueError('Choose Google sign-in.')
+        settings = client.call('/auth/v1/settings', method='GET')
+        if not settings.get('external', {}).get('google'):
+            raise AuthFailure('Google sign-in needs to be enabled in Supabase by the project owner.', 503)
+        # Fixed deployment URL, never a browser-supplied redirect or Host header.
+        origin = os.getenv('AEGISOPS_PUBLIC_URL', 'https://aegiesops.onrender.com').rstrip('/')
+        parsed = urlparse(origin)
+        if (parsed.scheme != 'https' or not parsed.hostname or parsed.username
+                or parsed.path or parsed.query or parsed.fragment):
+            raise AuthFailure('Google sign-in redirect is not configured correctly.', 503)
+        verifier = secrets.token_urlsafe(48)
+        challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).decode().rstrip('=')
+        query = urlencode({'provider': 'google', 'redirect_to': origin + '/',
+                           'code_challenge': challenge, 'code_challenge_method': 's256',
+                           'scopes': 'openid email profile'})
+        response = jsonify(url=client.url + '/auth/v1/authorize?' + query)
+        response.set_cookie('aegisops_pkce', verifier, httponly=True, secure=request.is_secure,
+                            samesite='Strict', path='/api/auth/oauth', max_age=600)
+        return response
+
+    @bp.post('/oauth/exchange')
+    def oauth_exchange():
+        if mode != 'supabase':
+            raise AuthFailure('Google sign-in is disabled in token test mode.', 403)
+        try:
+            code = body().get('code')
+            verifier = request.cookies.get('aegisops_pkce', '')
+            if not isinstance(code, str) or not 1 <= len(code) <= 2048 or not re.fullmatch(r'[A-Za-z0-9_-]{64}', verifier):
+                raise AuthFailure('Google sign-in expired or was not started in this browser. Please try again.')
+            # The identity RPC still validates the live session and current role.
+            response = session_response(client.call('/auth/v1/token?grant_type=pkce',
+                                        {'auth_code': code, 'code_verifier': verifier}))
+        except AuthFailure as exc:
+            response = jsonify(error=str(exc))
+            response.status_code = exc.status
+        response.delete_cookie('aegisops_pkce', path='/api/auth/oauth', secure=request.is_secure,
+                               httponly=True, samesite='Strict')
+        return response
 
     @bp.post('/refresh')
     def refresh():

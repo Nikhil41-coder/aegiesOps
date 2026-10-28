@@ -88,6 +88,23 @@
   const ready = (async () => {
     if (mode === 'token') return;
     sessionStorage.removeItem('aegisops-token');
+    const callback = new URL(location.href);
+    const code = callback.searchParams.get('code');
+    const oauthError = callback.searchParams.has('error') || new URLSearchParams(location.hash.slice(1)).has('error');
+    if (code || oauthError) {
+      // Remove the single-use code and provider errors before polling or navigation.
+      for (const key of ['code', 'error', 'error_description', 'error_code']) callback.searchParams.delete(key);
+      history.replaceState(null, '', callback.pathname + callback.search);
+      try {
+        if (oauthError) throw new Error('Google sign-in was cancelled or denied. Please try again.');
+        accept(await exchange('/api/auth/oauth/exchange', {code}));
+        await loadUsers();
+        return;
+      } catch (error) {
+        message(error.message);
+        dialog?.showModal();
+      }
+    }
     if (location.hash.includes('access_token=') || location.hash.includes('error=')) {
       history.replaceState(null, '', location.pathname + location.search);
       message('Please sign in after confirming your email.');
@@ -103,6 +120,15 @@
   window.aegisAuth = {ready, request: async (path, options) => { await ready; return authorized(path, options); }};
   if (mode === 'token') return;
   document.getElementById('credentials')?.addEventListener('click', () => dialog?.showModal());
+  document.getElementById('google-signin')?.addEventListener('click', async event => {
+    const button = event.currentTarget;
+    button.disabled = true;
+    message('Opening Google sign-in…');
+    try {
+      const result = await exchange('/api/auth/oauth/start', {provider: 'google'});
+      location.assign(result.url);
+    } catch (error) { message(error.message); button.disabled = false; }
+  });
   document.getElementById('account-form')?.addEventListener('submit', async event => {
     event.preventDefault();
     const buttons = [...dialog.querySelectorAll('button[type="submit"]')]; buttons.forEach(b => { b.disabled = true; });

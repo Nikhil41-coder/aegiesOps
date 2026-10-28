@@ -97,7 +97,7 @@ def test_outage_fails_closed_without_leaking_details(account_app, monkeypatch):
 
 def test_auth_csrf_checks_apply_to_all_posts(account_app):
     app, engine, _, calls = account_app
-    for path in ['/api/auth/signin','/api/auth/signup','/api/auth/refresh','/api/auth/signout','/api/run']:
+    for path in ['/api/auth/signin','/api/auth/signup','/api/auth/refresh','/api/auth/signout','/api/auth/oauth/start','/api/auth/oauth/exchange','/api/run']:
         response = app.test_client().post(path,json={},headers={'Origin':'https://attacker.invalid','Authorization':'Bearer operator-token'})
         assert response.status_code == 403
     assert not calls and not engine.adapter.calls
@@ -185,3 +185,87 @@ def test_auth_provider_errors_are_sanitized(monkeypatch):
 def test_secret_key_is_not_accepted_as_publishable_config(monkeypatch):
     monkeypatch.setenv('AEGISOPS_SUPABASE_PUBLISHABLE_KEY','sb_secret_test_not_real')
     with pytest.raises(ValueError): SupabaseAccounts()
+
+
+def enable_google(app, monkeypatch):
+    client = app.config['ACCOUNTS']
+    original = client.call
+    def call(path, data=None, token=None, method='POST'):
+        if path == '/auth/v1/settings':
+            return {'external': {'google': True}}
+        return original(path, data, token, method)
+    monkeypatch.setattr(client, 'call', call)
+
+
+def test_google_pkce_roundtrip_cookie_challenge_and_identity(account_app, monkeypatch):
+    import base64
+    from urllib.parse import urlparse, parse_qs
+    app, engine, _, calls = account_app
+    enable_google(app, monkeypatch)
+    client = app.test_client()
+    result = client.post('/api/auth/oauth/start', json={'provider': 'google', 'redirect_to': 'https://evil.invalid'}, base_url='https://demo.example')
+    assert result.status_code == 200
+    url = urlparse(result.json['url'])
+    params = parse_qs(url.query)
+    verifier = client.get_cookie('aegisops_pkce', domain='demo.example', path='/api/auth/oauth').value
+    expected = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).decode().rstrip('=')
+    assert params['code_challenge'] == [expected]
+    assert params['code_challenge_method'] == ['s256']
+    assert params['provider'] == ['google']
+    assert params['redirect_to'] == ['https://aegiesops.onrender.com/']
+    assert url.hostname == 'ulyopcyopyiaquarczua.supabase.co'
+    assert verifier not in result.get_data(as_text=True)
+    assert all(x in result.headers['Set-Cookie'] for x in ('HttpOnly','Secure','SameSite=Strict','Max-Age=600'))
+    finish = client.post('/api/auth/oauth/exchange', json={'code':'single-use-code','role':'admin'}, base_url='https://demo.example')
+    assert finish.status_code == 200 and finish.json['user'] == USER
+    assert calls[-1][1] == {'auth_code':'single-use-code','code_verifier':verifier}
+    assert calls[-1][0] == '/auth/v1/token?grant_type=pkce'
+    assert 'private-refresh' not in finish.get_data(as_text=True)
+    assert client.get_cookie('aegisops_pkce', domain='demo.example', path='/api/auth/oauth') is None
+    assert client.post('/api/auth/oauth/exchange', json={'code':'same-code'}, base_url='https://demo.example').status_code == 401
+    assert not engine.adapter.calls and not engine.store.records()
+
+
+def test_google_disabled_and_unknown_provider_fail_closed(account_app):
+    app, engine, _, _ = account_app
+    assert post(app, '/api/auth/oauth/start', data={'provider':'google'}).status_code == 503
+    assert post(app, '/api/auth/oauth/start', data={'provider':'attacker'}).status_code == 400
+    assert not engine.adapter.calls
+
+
+def test_google_exchange_without_initiation_never_contacts_provider(account_app):
+    app, _, _, calls = account_app
+    assert post(app, '/api/auth/oauth/exchange', data={'code':'injected-code'}).status_code == 401
+    assert not calls
+
+
+def test_google_failed_exchange_consumes_pending_cookie(account_app, monkeypatch):
+    app, _, _, _ = account_app
+    enable_google(app, monkeypatch)
+    client = app.test_client()
+    client.post('/api/auth/oauth/start', json={'provider':'google'})
+    def fail(*args, **kwargs):
+        raise AuthFailure('Sign-in denied.')
+    monkeypatch.setattr(app.config['ACCOUNTS'],'call',fail)
+    result = client.post('/api/auth/oauth/exchange', json={'code':'expired-code'})
+    assert result.status_code == 401
+    assert client.get_cookie('aegisops_pkce', path='/api/auth/oauth') is None
+
+
+def test_google_invalid_public_url_and_token_mode_refused(account_app, monkeypatch):
+    app, _, _, _ = account_app
+    enable_google(app, monkeypatch)
+    monkeypatch.setenv('AEGISOPS_PUBLIC_URL', 'https://demo.example@evil.invalid/path')
+    assert post(app, '/api/auth/oauth/start', data={'provider':'google'}).status_code == 503
+    token_app = create_app(Engine(), operator_token='local-test')
+    assert post(token_app, '/api/auth/oauth/start', data={'provider':'google'}).status_code == 403
+    assert post(token_app, '/api/auth/oauth/exchange', data={'code':'code'}).status_code == 403
+
+
+def test_google_ui_does_not_require_external_scripts(account_app):
+    app, _, _, _ = account_app
+    response = app.test_client().get('/')
+    assert b'Continue with Google' in response.data
+    assert b'id="google-signin"' in response.data
+    assert response.headers['Referrer-Policy'] == 'no-referrer'
+    assert "script-src 'self'" in response.headers['Content-Security-Policy']

@@ -19,3 +19,6 @@
 
 .account-user button:disabled { opacity: .4; cursor: not-allowed; }
 .audit-actor { display: block; font-size: 12px; overflow-wrap: anywhere; }
+.button-google { width: 100%; justify-content: center; min-height: 44px; margin-top: 12px; background: #f2f4f7; color: #18232f; border: 1px solid #cbd6e0; font-size: 15px; }
+.button-google:hover { background: #dce5ef; color: #18232f; }
+.account-divider { text-align: center; font-size: 13px; color: #cbd6e0; margin: 16px 0; }
