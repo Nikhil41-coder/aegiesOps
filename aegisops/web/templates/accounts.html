@@ -1,0 +1,4 @@
+{% extends 'base.html' %}{% block content %}
+<section class="page-heading"><div><div class="eyebrow">ACCOUNT PERMISSIONS</div><h1>Manage access</h1><p class="page-subtitle">Admins assign roles. New accounts start as viewers. You cannot change your own role.</p></div></section>
+<div class="panel account-panel"><p>Viewers inspect the demo. Operators run actions and control the kill switch. Approvers approve or deny higher-risk plans. Admins have both permissions and manage accounts.</p><p id="role-message" role="status" aria-live="polite"></p><div id="account-users">Sign in with an admin account to load users.</div></div>
+{% endblock %}

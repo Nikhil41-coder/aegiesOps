@@ -4,13 +4,14 @@ from functools import wraps
 import hmac
 import os
 from uuid import uuid4
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, g
 from ..adapters.mock import MockAdapter, FAULTS
 from ..audit import AuditStore, check_complete, completeness_score
 from ..config import DATABASE_URL, MODE
 from ..evaluation import run_evaluation
 from ..orchestrator import Engine
 from ..policy import Decision
+from .accounts import install_accounts
 
 
 def create_app(engine=None, operator_token=None):
@@ -30,6 +31,15 @@ def create_app(engine=None, operator_token=None):
     )
     actor = os.getenv("AEGISOPS_APPROVER", "local-operator")
 
+    auth_mode = 'token' if operator_token is not None else os.getenv('AEGISOPS_AUTH_MODE', 'supabase')
+    if auth_mode not in ('supabase', 'token'):
+        raise ValueError('Unknown authentication mode')
+    install_accounts(app, engine, auth_mode)
+
+    def current_actor():
+        user = getattr(g, 'account', None)
+        return ('Account ' + user['id']) if user else actor
+
     @app.after_request
     def security_headers(response):
         response.headers["Cache-Control"] = "no-store"
@@ -42,6 +52,9 @@ def create_app(engine=None, operator_token=None):
     def operator_only(fn):
         @wraps(fn)
         def wrapped(*args, **kwargs):
+            if auth_mode == 'supabase':
+                permission = {'inject': 'inject', 'run': 'run', 'approve': 'approve', 'deny': 'deny', 'kill': 'kill'}[fn.__name__]
+                return app.config['ACCOUNT_REQUIRE'](permission)(fn)(*args, **kwargs)
             auth = request.headers.get("Authorization", "")
             if not token or not hmac.compare_digest(auth, "Bearer " + token):
                 return (
@@ -85,12 +98,13 @@ def create_app(engine=None, operator_token=None):
                 if r["status"] in ("PENDING", "APPROVED", "CONSUMED")
             ],
             audit_events=len(engine.store.records()),
-            operator_controls=bool(token),
+            operator_controls=(auth_mode == "supabase" or bool(token)),
+            auth_mode=auth_mode,
             provenance="Authored demo fixtures; organizer YAML and scenarios were not supplied",
         )
 
     def context():
-        return dict(status=status(), faults=sorted(FAULTS), operator_name=actor)
+        return dict(status=status(), faults=sorted(FAULTS), operator_name=actor, auth_mode=auth_mode)
 
     @app.get("/")
     def dashboard():
@@ -129,6 +143,10 @@ def create_app(engine=None, operator_token=None):
         return render_template(
             "evaluation.html", evaluation=run_evaluation(), **context()
         )
+
+    @app.get("/accounts")
+    def accounts_page():
+        return render_template("accounts.html", **context())
 
     @app.get("/api/status")
     def api_status():
@@ -182,7 +200,7 @@ def create_app(engine=None, operator_token=None):
     def approve(request_id):
         data = body()
         with engine.lock:
-            engine.approvals.approve(request_id, actor, data.get("reason"))
+            engine.approvals.approve(request_id, current_actor(), data.get("reason"))
             return jsonify(engine.resume(request_id))
 
     @app.post("/api/deny/<request_id>")
@@ -190,7 +208,7 @@ def create_app(engine=None, operator_token=None):
     def deny(request_id):
         data = body()
         # No engine lock: in-flight revocations must be visible at the next boundary.
-        return jsonify(engine.approvals.deny(request_id, actor, data.get("reason")))
+        return jsonify(engine.approvals.deny(request_id, current_actor(), data.get("reason")))
 
     @app.post("/api/killswitch")
     @operator_only
@@ -208,7 +226,7 @@ def create_app(engine=None, operator_token=None):
             ),
             event="closed",
             final_outcome="KILL_ENABLED" if active else "KILL_DISABLED",
-            approver={"name": actor},
+            approver={"name": current_actor()},
         )
         return jsonify(kill_switch=active, dashboard_kill=enabled)
 
