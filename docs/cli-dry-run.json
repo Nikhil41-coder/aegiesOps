@@ -1,0 +1,72 @@
+{
+  "action_id": "757a0d1f-10a4-4606-a131-38f01e9f9cbb",
+  "outcome": "DRY_RUN",
+  "decision": {
+    "outcome": "AUTO",
+    "reasons": [
+      "All deterministic policy checks passed"
+    ],
+    "checks": {
+      "kill_switch": true,
+      "circuit_breaker": true,
+      "match": true,
+      "tier": true,
+      "blast_radius": true,
+      "global_rate_limit": true
+    }
+  },
+  "plan": [
+    {
+      "action": "prune",
+      "target": "logs",
+      "path": "/data/log",
+      "bytes": 52428800,
+      "simulation_effects": {
+        "disk_used_pct": 65
+      }
+    }
+  ],
+  "audit": {
+    "timestamp": "2026-10-28T10:56:16.607411+00:00",
+    "action_id": "757a0d1f-10a4-4606-a131-38f01e9f9cbb",
+    "runbook_id": "RB-01",
+    "tier": "T1",
+    "observation": {
+      "disk_used_pct": 95,
+      "largest_consumer": "logs",
+      "crash_dir_nonempty": false,
+      "heartbeat_age_s": 1,
+      "restarts_last_hour": 0,
+      "queue_depth": 0,
+      "queue_growing": false,
+      "consumer_count": 1,
+      "cert_expires_in_hours": 720,
+      "tmp_used_pct": 15,
+      "replication_lag_s": 0,
+      "pool_used_pct": 20,
+      "idle_in_txn_count": 0,
+      "recent_deploy_minutes": 999,
+      "resolution_failures_1m": 0,
+      "app_healthy": true
+    },
+    "decision": "AUTO",
+    "reasons": [
+      "All deterministic policy checks passed"
+    ],
+    "checks": {
+      "kill_switch": true,
+      "circuit_breaker": true,
+      "match": true,
+      "tier": true,
+      "blast_radius": true,
+      "global_rate_limit": true
+    },
+    "approver": null,
+    "step_results": [],
+    "health_result": "NOT_RUN",
+    "rollback_status": "NOT_NEEDED",
+    "final_outcome": "DRY_RUN",
+    "event": "closed",
+    "id": 1
+  }
+}

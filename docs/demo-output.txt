@@ -1,0 +1,317 @@
+AEGISOPS — POLICY-GATED REMEDIATION DEMO
+SIMULATE ONLY · Authored demo fixtures, not organizer ground truth.
+
+========================================================================
+1. Log-full fault: automatic, bounded cleanup
+Outcome: RESOLVED | policy: AUTO
+Reasons: All deterministic policy checks passed
+Audit: {
+  "timestamp": "2026-10-28T10:56:14.515437+00:00",
+  "action_id": "f365ce63-bf59-4704-b418-2eb6bd5cba99",
+  "runbook_id": "RB-01",
+  "tier": "T1",
+  "observation": {
+    "disk_used_pct": 65,
+    "largest_consumer": "logs",
+    "crash_dir_nonempty": false,
+    "heartbeat_age_s": 1,
+    "restarts_last_hour": 0,
+    "queue_depth": 0,
+    "queue_growing": false,
+    "consumer_count": 1,
+    "cert_expires_in_hours": 720,
+    "tmp_used_pct": 15,
+    "replication_lag_s": 0,
+    "pool_used_pct": 20,
+    "idle_in_txn_count": 0,
+    "recent_deploy_minutes": 999,
+    "resolution_failures_1m": 0,
+    "app_healthy": true
+  },
+  "decision": "AUTO",
+  "reasons": [
+    "All deterministic policy checks passed"
+  ],
+  "checks": {
+    "kill_switch": true,
+    "circuit_breaker": true,
+    "match": true,
+    "tier": true,
+    "blast_radius": true,
+    "global_rate_limit": true
+  },
+  "approver": null,
+  "step_results": [
+    {
+      "step": 1,
+      "action": "prune",
+      "target": "logs",
+      "status": "SUCCEEDED"
+    }
+  ],
+  "health_result": "PASSED",
+  "rollback_status": "NOT_NEEDED",
+  "final_outcome": "RESOLVED",
+  "event": "closed",
+  "id": 6
+}
+Adapter calls: 1 | change snapshots: 6 | completeness: 100%
+
+========================================================================
+2. Core dump: refuse mutation and escalate to operator
+Outcome: REFUSE | policy: REFUSE
+Reasons: T3 is read-only: page a human with observation context
+Audit: {
+  "timestamp": "2026-10-28T10:56:14.538655+00:00",
+  "action_id": "045320e4-c721-4e4c-b815-b4fa8a82685f",
+  "runbook_id": "RB-02",
+  "tier": "T3",
+  "observation": {
+    "disk_used_pct": 95,
+    "largest_consumer": "core",
+    "crash_dir_nonempty": true,
+    "heartbeat_age_s": 1,
+    "restarts_last_hour": 0,
+    "queue_depth": 0,
+    "queue_growing": false,
+    "consumer_count": 1,
+    "cert_expires_in_hours": 720,
+    "tmp_used_pct": 15,
+    "replication_lag_s": 0,
+    "pool_used_pct": 20,
+    "idle_in_txn_count": 0,
+    "recent_deploy_minutes": 999,
+    "resolution_failures_1m": 0,
+    "app_healthy": true
+  },
+  "decision": "REFUSE",
+  "reasons": [
+    "T3 is read-only: page a human with observation context"
+  ],
+  "checks": {
+    "kill_switch": true,
+    "circuit_breaker": true,
+    "match": true,
+    "tier": false
+  },
+  "approver": null,
+  "step_results": [],
+  "health_result": "NOT_RUN",
+  "rollback_status": "NOT_NEEDED",
+  "final_outcome": "REFUSE",
+  "event": "closed",
+  "id": 1
+}
+Adapter calls: 0 | change snapshots: 1 | completeness: 100%
+
+========================================================================
+3. Logs + core dump: ambiguous, escalate without guessing
+Outcome: ESCALATE | policy: ESCALATE
+Reasons: No unique confident match, unknown state, or changed preconditions
+Audit: {
+  "timestamp": "2026-10-28T10:56:14.560013+00:00",
+  "action_id": "bf3f8950-a406-4778-a9a4-8eba6a7160ef",
+  "runbook_id": "UNMATCHED",
+  "tier": "N/A",
+  "observation": {
+    "disk_used_pct": 95,
+    "largest_consumer": "logs",
+    "crash_dir_nonempty": true,
+    "heartbeat_age_s": 1,
+    "restarts_last_hour": 0,
+    "queue_depth": 0,
+    "queue_growing": false,
+    "consumer_count": 1,
+    "cert_expires_in_hours": 720,
+    "tmp_used_pct": 15,
+    "replication_lag_s": 0,
+    "pool_used_pct": 20,
+    "idle_in_txn_count": 0,
+    "recent_deploy_minutes": 999,
+    "resolution_failures_1m": 0,
+    "app_healthy": true
+  },
+  "decision": "ESCALATE",
+  "reasons": [
+    "No unique confident match, unknown state, or changed preconditions"
+  ],
+  "checks": {
+    "kill_switch": true,
+    "circuit_breaker": true,
+    "match": false
+  },
+  "approver": null,
+  "step_results": [],
+  "health_result": "NOT_RUN",
+  "rollback_status": "NOT_NEEDED",
+  "final_outcome": "ESCALATE",
+  "event": "closed",
+  "id": 1
+}
+Adapter calls: 0 | change snapshots: 1 | completeness: 100%
+
+========================================================================
+4. Certificate: recorded human approval, then execute
+Policy: NEEDS_APPROVAL. No action has executed.
+Outcome: RESOLVED | policy: NEEDS_APPROVAL
+Reasons: T2 requires a recorded, unexpired action-bound approval
+Audit: {
+  "timestamp": "2026-10-28T10:56:14.623158+00:00",
+  "action_id": "03d4baaa-2f05-4853-8822-6f6f7511ba4a",
+  "runbook_id": "RB-05",
+  "tier": "T2",
+  "observation": {
+    "disk_used_pct": 35,
+    "largest_consumer": "none",
+    "crash_dir_nonempty": false,
+    "heartbeat_age_s": 1,
+    "restarts_last_hour": 0,
+    "queue_depth": 0,
+    "queue_growing": false,
+    "consumer_count": 1,
+    "cert_expires_in_hours": 720,
+    "tmp_used_pct": 15,
+    "replication_lag_s": 0,
+    "pool_used_pct": 20,
+    "idle_in_txn_count": 0,
+    "recent_deploy_minutes": 999,
+    "resolution_failures_1m": 0,
+    "app_healthy": true
+  },
+  "decision": "NEEDS_APPROVAL",
+  "reasons": [
+    "T2 requires a recorded, unexpired action-bound approval"
+  ],
+  "checks": {
+    "kill_switch": true,
+    "circuit_breaker": true,
+    "match": true,
+    "tier": true,
+    "blast_radius": true,
+    "global_rate_limit": true,
+    "approval_required": true
+  },
+  "approver": {
+    "name": "demo-on-call",
+    "timestamp": "2026-10-28T10:56:14.608354+00:00",
+    "reason": "Reviewed exact certificate rotation plan and staging scope"
+  },
+  "step_results": [
+    {
+      "step": 1,
+      "action": "rotate",
+      "target": "cert",
+      "status": "SUCCEEDED"
+    }
+  ],
+  "health_result": "PASSED",
+  "rollback_status": "NOT_NEEDED",
+  "final_outcome": "RESOLVED",
+  "event": "closed",
+  "id": 9
+}
+Adapter calls: 1 | change snapshots: 9 | completeness: 100%
+
+========================================================================
+5. Ineffective fix: ONE rollback, then escalate
+Outcome: ESCALATE | policy: ESCALATE
+Reasons: Health check failed; no remediation retry permitted
+Audit: {
+  "timestamp": "2026-10-28T10:56:14.705943+00:00",
+  "action_id": "8d075149-2441-4f38-9b86-a3124d32ca91",
+  "runbook_id": "RB-01",
+  "tier": "T1",
+  "observation": {
+    "disk_used_pct": 95,
+    "largest_consumer": "logs",
+    "crash_dir_nonempty": false,
+    "heartbeat_age_s": 1,
+    "restarts_last_hour": 0,
+    "queue_depth": 0,
+    "queue_growing": false,
+    "consumer_count": 1,
+    "cert_expires_in_hours": 720,
+    "tmp_used_pct": 15,
+    "replication_lag_s": 0,
+    "pool_used_pct": 20,
+    "idle_in_txn_count": 0,
+    "recent_deploy_minutes": 999,
+    "resolution_failures_1m": 0,
+    "app_healthy": true
+  },
+  "decision": "ESCALATE",
+  "reasons": [
+    "Health check failed; no remediation retry permitted"
+  ],
+  "checks": {
+    "execution": false
+  },
+  "approver": null,
+  "step_results": [
+    {
+      "step": 1,
+      "action": "prune",
+      "target": "logs",
+      "status": "SUCCEEDED"
+    }
+  ],
+  "health_result": "FAILED",
+  "rollback_status": "COMPLETED",
+  "final_outcome": "ESCALATE",
+  "event": "closed",
+  "id": 7
+}
+Adapter calls: 2 | change snapshots: 7 | completeness: 100%
+
+========================================================================
+6. Kill switch after mutation: abort, compensate, escalate
+Outcome: ESCALATE | policy: ESCALATE
+Reasons: Kill switch activated at boundary
+Audit: {
+  "timestamp": "2026-10-28T10:56:14.739330+00:00",
+  "action_id": "c30d60c5-f01a-4547-8744-a095ead7473a",
+  "runbook_id": "RB-01",
+  "tier": "T1",
+  "observation": {
+    "disk_used_pct": 95,
+    "largest_consumer": "logs",
+    "crash_dir_nonempty": false,
+    "heartbeat_age_s": 1,
+    "restarts_last_hour": 0,
+    "queue_depth": 0,
+    "queue_growing": false,
+    "consumer_count": 1,
+    "cert_expires_in_hours": 720,
+    "tmp_used_pct": 15,
+    "replication_lag_s": 0,
+    "pool_used_pct": 20,
+    "idle_in_txn_count": 0,
+    "recent_deploy_minutes": 999,
+    "resolution_failures_1m": 0,
+    "app_healthy": true
+  },
+  "decision": "ESCALATE",
+  "reasons": [
+    "Kill switch activated at boundary"
+  ],
+  "checks": {
+    "execution": false
+  },
+  "approver": null,
+  "step_results": [
+    {
+      "step": 1,
+      "action": "prune",
+      "target": "logs",
+      "status": "SUCCEEDED"
+    }
+  ],
+  "health_result": "NOT_RUN",
+  "rollback_status": "COMPLETED",
+  "final_outcome": "ESCALATE",
+  "event": "closed",
+  "id": 6
+}
+Adapter calls: 2 | change snapshots: 6 | completeness: 100%
+
+All six demonstrations completed.

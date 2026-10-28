@@ -1,0 +1,1 @@
+HTTP smoke passed: four pages, assets, resolve, approve, deny, kill/refuse/release

@@ -2,7 +2,7 @@
 
 A policy-gated runbook remediation engine for AO-04: **automation that is safe enough to leave switched on**. Python 3.11+, Flask, SQLAlchemy/SQLite, PyYAML, Jinja2, and vanilla JavaScript. No frontend build and no Docker required.
 
-**This deliverable is a working simulation.** The supplied ZIP contains seven synthetic CSV files and a README, not the organizer YAML, S01–S13 scenarios, Docker environment, or fault injector referenced in the task. Original files are preserved byte-for-byte in `data/source_csv/`. The ten runbooks, policy, and thirteen scenarios used here are newly authored demo fixtures and prominently labeled. Passing these tests does **not** establish compliance with missing organizer ground truth. See [input provenance](data/PROVENANCE.md).
+**This deliverable is a working simulation.** The supplied ZIP contains eight synthetic CSV files describing 3,000 historical incidents and illustrative policies. They are preserved byte-for-byte in `data/source_csv/`; they are not real incident evidence, authorized remediation policy, or organizer ground truth. The organizer's runbook prose, authoritative policy, S01–S13 scenarios, Docker environment, and fault injector were not included. The ten runbooks, policy, and thirteen scenarios in this project are authored demo fixtures, not conversions or substitutes for those missing inputs. Historical approvals never authorize new actions, and no production credentials are included. Passing these tests does **not** establish compliance with missing organizer ground truth. See [input provenance](data/PROVENANCE.md) and [the source CSV notes](data/source_csv/README.md).
 
 ## Run locally
 
@@ -42,6 +42,8 @@ If `flask` is not on PATH, use `python -m flask --app aegisops.web.app run --hos
 
 On the Overview page, inject `log_full` and run detection. Next inject `cert_expiring`, run detection, open Approvals, enter a reason, and select **Approve & execute** or **Deny**. Toggle the kill switch, run detection again, and inspect the refusal in Audit trail. The scripted demo adds failing-health and mid-run kill cases.
 
+Open **Evaluation** in the sidebar to run the six authored demo scenarios in fresh, isolated mock engines. The scorecard compares expected and actual outcomes, approval handling, safe stops, rollback verification, and audit completeness. It does not change the active dashboard simulation or report real-world resolution rates.
+
 ```bash
 python -m aegisops --fault log_full --dry-run
 python scripts/demo.py --dry-run
@@ -53,29 +55,21 @@ Dry runs record the decision and plan, with no approval creation, execution rese
 
 ```mermaid
 flowchart TD
-    O["Observer: scalar metrics"] --> M["Matcher: unique full match"]
-    M --> P["Pure ordered policy engine"]
-    P -->|"REFUSE / ESCALATE"| H["Operator review"]
-    P -->|"T2: approval required"| A["Action-bound approval queue"]
-    A -->|"Recorded, valid approval"| R["Fresh policy recheck"]
-    R --> E["Opaque execution grant"]
-    P -->|"T0 / T1: AUTO"| E
-    E --> G["Capability guard + step boundary checks"]
-    G --> V["Mock adapter + health verification"]
-    V -->|"Healthy"| C["Close change: RESOLVED"]
-    V -->|"Error / unhealthy / interrupted"| B["One compensation pass"]
-    B --> H
-    P -.-> L["Append-only audit + change snapshots"]
-    G -.-> L
-    V -.-> L
-    B -.-> L
+    RUNBOOKS["List of Runbooks"] --> SEGREGATION["Risk Segregation<br/>(policy-based in this demo)"]
+    SEGREGATION -->|"Low risk"| AUTOMATION["Automation"]
+    SEGREGATION -->|"High risk"| QUEUE["Added to Priority Queue"]
+    AUTOMATION --> SOLVED["Solved Solution"]
+    SOLVED -->|"Check for security issues;<br/>if uncertain, send for review"| QUEUE
+    SOLVED -.->|"New solved remediation added"| RUNBOOKS
 ```
+
+The sketch shows the workflow at a glance. In this demo, risk segregation uses deterministic policy rules rather than an AI model.
 
 `policy.decide(candidate, observation, context)` performs no I/O. Checks stop at the first failure: kill switch, circuit breaker, match/confidence/unknown state, T3 prohibition, blast radius, global rate limit, and tier approval rule. The returned `Decision` is evidence, not an execution credential. `PolicyAuthority` re-evaluates the decision and issues an opaque grant bound to action ID and the hash of the exact runbook. The executor verifies that grant and the entire plan's capabilities before the first adapter action.
 
 The condition parser accepts a named scalar metric, one comparison (`==`, `!=`, `>`, `>=`, `<`, `<=`), and a quoted string, boolean, or numeric literal. It never calls `eval`. YAML rejects duplicate keys, unknown schema fields, shell/command fields, invalid paths, missing capabilities, and mutating T3 definitions. `None`, nonfinite values, missing fields, and type mismatches produce UNKNOWN. Any partial match, multiple full matches, or required unknown value prevents execution. All known runbooks participate in matching; an unrelated unknown conservatively blocks automation too.
 
-Before each forward step, the executor re-observes state, checks kill switches and approval validity, compares state with its previous authorized snapshot, re-matches the registry, and runs policy again. Known changes made by the previous successful adapter step become the new expected state. Unexpected changes abort. The final verification boundary also checks kill/revocation/state. No LLM is involved; there is no shell-string execution path.
+Before each forward step, the executor re-observes state, checks kill switches and approval validity, compares state with its previous authorized snapshot, re-matches the registry, and runs policy again. Known changes made by the previous successful adapter step become the new expected state. Unexpected changes abort. An approval is revoked if its frozen observation, runbook, or incident binding changes, or if policy no longer permits execution at the approval recheck. The final verification boundary also checks kill/revocation/state. No LLM is involved; there is no shell-string execution path.
 
 ## Safety evidence
 
@@ -87,7 +81,7 @@ Before each forward step, the executor re-observes state, checks kill switches a
 | Separate deciding from doing | Pure decisions plus opaque action/plan-bound grants; forged and modified-plan grants rejected |
 | Fail closed | Missing input, observer error, missing runbook, low confidence, stale state, unapproved action and malformed schema all stop execution |
 | T3 never mutates | Loader rejects mutating T3 definitions; policy refuses them; executor independently refuses T3 entry; observation context is retained for human review |
-| T2 approval record and timeout | Approver/name, timestamp, reason, frozen plan and observation, action ID, incident ID, deadline; no approval reuse; expiry appends `DENIED_TIMEOUT` and an escalated change |
+| T2 approval record and timeout | Approver/name, timestamp, reason, frozen plan and observation, action ID, incident ID, deadline; no approval reuse; expiry appends `DENIED_TIMEOUT`; stale bindings or a failed policy recheck revoke the approval and record escalation |
 | Preconditions before every step | Declared read-only preparation followed by changed state or kill; S08/S09 and invariant 5; post-mutation revocation test |
 | No retry loop | Every execution reservation is durable; a runbook cannot be attempted again for the same incident, including through a second pending approval |
 | Complete audit trail | Every decision and forward/rollback event appends audit and change snapshots in one DB transaction; `check_complete` and dashboard completeness badges |
@@ -96,6 +90,21 @@ Before each forward step, the executor re-observes state, checks kill switches a
 | Rate limits and circuit breaker | Durable execution reservations count against a rolling global budget; consecutive failures open the breaker until its reset window; unfinished executions quarantine later actions |
 | ITIL-style change records | Stable change ID/start, requester, approver, standard (T0/T1) / normal (T2), assessment (T3/unmatched), close time, outcome and rollback result; append-only snapshots |
 | Data-driven holdouts | Three inline runbooks absent from the shipped registry: swap refresh, zombie cleanup and expired-token rotation. New resource names are explicitly added to policy data; engine code is unchanged |
+
+## AO-04 requirement fit
+
+| AO-04 requirement | Project behavior |
+| --- | --- |
+| Routine runbooks act automatically only within limits | A unique observation match, deterministic tier decision, allowlisted target/path, scoped capability, per-plan blast-radius limits and global rate budget are checked before execution. T0/T1 may run automatically; T2 requires approval; T3 cannot mutate. |
+| Ambiguous incidents escalate instead of guessing | Partial or multiple matches, unknown metrics, conflicting observations, changed preconditions and invalid policy inputs block mutation and produce an escalation/refusal record. |
+| Higher-risk actions require recorded human authority | T2 approval freezes the runbook, observation, incident and action ID. Approval requires a configured operator and reason, expires, is consumed once, and is revoked if its binding or fresh policy check no longer holds. |
+| Conditions changing mid-run stop safely | State, kill switch, circuit breaker and approval are checked at execution boundaries and before final health verification. A stopped action does not start a second remediation attempt. |
+| Ineffective actions are reversible and visible | Execution receipts drive one reverse-order compensation pass; restoration is verified. Audit and change snapshots record decisions, steps, approvals, health and rollback outcomes. |
+| Least privilege, kill switch and rate limits | Each simulated step receives only its runbook's scoped capability. File, environment and dashboard kill switches plus global limits and the failure circuit breaker gate execution. These Python capabilities are simulation guards, not a live OS security boundary. |
+| Auditability and change management | SQLite audit, approval, runtime and change events are append-only at the application/database trigger layer; the UI exposes event details and audit completeness checks. |
+| Evaluation boundary | The app handles only declared runbooks and scalar observations. It does not diagnose novel incidents, provision infrastructure or replace a ticketing system. It performs no external paging. |
+
+**Verification boundary:** these behaviors are exercised using the bundled authored fixtures and a mock adapter. The supplied organizer runbook prose, authoritative risk policy and sample fault environment described in AO-04 were not present in the source archive. Therefore this project cannot yet claim exact runbook fidelity or success rates against the organizer's environment. Replace the demo fixtures with those authoritative inputs and rerun the same safety/evaluation checks before treating those metrics as operational evidence. The live Docker adapter remains disabled until an authorized environment and workload-enforced credentials are provided.
 
 The test files map directly to the requested loader, policy, scenario, invariant, and holdout requirements. `test_safety_edges.py` additionally checks false rollback-success claims, external-writer conflicts, post-mutation adapter exceptions, durable incomplete-execution quarantine, duplicate YAML keys, grant tampering, and approval reuse through parallel pending requests. See `docs/validation.json` and `docs/demo-output.txt` for this build's verification evidence.
 
@@ -115,7 +124,7 @@ Safer choices where the task is ambiguous:
 
 ## API
 
-GET endpoints are read-only views (and process overdue approval deadlines). All POST requests require `Authorization: Bearer <AEGISOPS_OPERATOR_TOKEN>`, JSON content, and same-origin access when an Origin header is present. The application does not use cookie authentication for control requests. Supply a nonempty reason for human decisions. Server configuration determines the recorded approver identity.
+GET endpoints are read-only views (and process overdue approval deadlines). All POST requests require a bearer token in the `Authorization` header, JSON content, and same-origin access when an Origin header is present. Send the configured operator token as `Authorization: Bearer TOKEN`. The application does not use cookie authentication for control requests. Supply a nonempty reason for human decisions. Server configuration determines the recorded approver identity.
 
 | Method | Route | Body / behavior |
 | --- | --- | --- |
@@ -155,38 +164,6 @@ Development commits follow the requested staged build. Inspect `git log --onelin
 
 ## Phase 2 frontend refresh
 
-The dashboard now uses a custom dark operations-console design across Overview, Runbook Registry, Approval Queue, and Audit Trail. The refresh keeps the existing Flask/Jinja routes and JSON API contracts, preserves the operator-token control flow, and adds responsive layouts, a mobile navigation toggle, clearer simulation/provenance labeling, improved telemetry cards, approval evidence panels, audit completeness bars, and a more legible decision output terminal.
+The dashboard now uses a custom dark operations-console design across Overview, Runbook Registry, Approval Queue, Evaluation, and Audit Trail. Evaluation runs the same six authored scenarios as the demo script against fresh in-memory mock engines, then reports automatic and approval-gated resolutions, safe stops, verified rollbacks, adapter calls in scenarios expected to stop before execution, and audit completeness. It never mutates the active dashboard simulation or contacts live infrastructure. The refresh keeps the existing Flask/Jinja routes and JSON API contracts, preserves the operator-token control flow, and adds responsive layouts, a mobile navigation toggle, clearer simulation/provenance labeling, improved telemetry cards, approval evidence panels, audit completeness bars, and a more legible decision output terminal.
 
 No frontend build step is required. CSS and JavaScript are served locally; no external font or UI framework is required. The interface remains a **simulation UI** and does not enable live infrastructure execution.
-
-## Updated Control Plane integration
-
-This working branch uses `ovaissyed872-del/aegisops` commit `4e28ce1` as its base. Its Control Plane visual system, stylesheets, navigation shell, runbook registry, data and engine are retained. Decision traces, the shared isolated Scenario Lab, scoreboard, grouped audit, readable approvals, escalation ownership and threshold observations are integrated as presentation additions. Decorative telemetry charts were not retained because they did not represent measured data.
-
-`/replay` applies the documented pre-decision rule to synthetic CSV history. The supplied data yields 2,955/3,000 agreements (98.5%) and 45 mismatches. Final status, execution, approval and rollback labels do not enter predictions. Rollback statistics are displayed separately as historical labels. CSV expired approvals use AWAITING_APPROVAL; this engine denies timeout and escalates.
-
-UI verification: `python scripts/http_smoke.py` covers the existing pages plus Scenarios, Escalations and Replay. `python scripts/ui_screens.py` captures all six requested pages at 1440px and 390px in `docs/screens/`. It requires the optional development dependency `playwright==1.51.0` and `python -m playwright install chromium`. The safety modules are protected by the existing hash regression test. No live Docker execution or external paging has been added. Scenario results remain process-local.
-
-Screenshot review fixed overlapping mobile header controls and conflicting legacy change-summary layout. All twelve captures have no page-level horizontal overflow or JavaScript errors. The original 105 tests and added UI/replay tests pass (126 total). The screenshots use real fixture runs and a recorded pending approval, with no fabricated metrics. Live infrastructure behavior remains outside this simulation's evidence.
-
-## Phase 2 archive integration
-
-Merged the additions in `phase2updated.zip` into the existing upgraded UI. `/evaluation` runs the six narrated demo cases in isolated in-memory engines and reports actual outcomes, approval handling, rollback and audit completeness. The demo script uses the same six-case definitions. This is separate from the thirteen-case Scenario Lab, and neither modifies the dashboard engine.
-
-Stale approvals now append a REVOKED event when their observation, runbook or incident binding changes, or when a fresh policy check disallows execution. Restoring the old state or clearing a kill switch does not revive that approval. The supplied regression tests cover these cases. These are deliberate changes to approvals/orchestrator; the policy decision ordering and executor are unchanged. `docs/phase2-import.json` records the previous and imported hashes; `docs/engine-baseline.json` now protects the merged version.
-
-All existing Scenarios, Escalations, Replay, decision traces and operator controls are retained. The archive's conceptual architecture sketch was not adopted because it implies a priority queue and automatic runbook learning that are not implemented. The source CSV byte representation was restored from the uploaded archive and checked against the original checksum manifest.
-
-Limitations: this integration does not fix the previously audited delayed-health convergence, Windows default-path or existing mobile navigation issues. Escalation remains local with no external notification; approval expiry processing remains driven by engine/API calls. The Evaluation metric called “unauthorized actions” counts adapter calls only in the two cases expected to stop before execution; it is not a general safety detector. The LLM chatbot remains a proposal.
-
-Merged-build verification: 134 pytest tests pass; demo, dry-run, CLI, JavaScript syntax and eight-page HTTP smoke checks pass. Fourteen screenshots were regenerated at 1440px and 390px; no page overflow or JavaScript errors were observed, and the token/kill-confirm/engage/release interaction passed. The new Evaluation page was visually reviewed at both sizes and uses cards for mobile evidence rows. Current evidence is in `docs/validation.json`; the original report is retained as `docs/validation-original.json`.
-
-## Supabase and hosted deployment preparation
-
-The app supports a pre-migrated PostgreSQL database through SQLAlchemy/psycopg while local tests and isolated demo engines retain SQLite. The Render configuration uses one worker, private server-side credentials and `/healthz`. See [the deployment checklist](docs/deployment.md) for setup, verification and current blockers.
-
-Only the storage adapter (`models.py`) changed among the protected engine modules; its reviewed hash transition is recorded in `docs/postgres-storage-change.json`. Decision policy, executor, approvals, orchestrator, kill switch, verifier and audit triggers in those modules are unchanged. PostgreSQL uses its own append-only migration and restricted database role. No Supabase Auth or LLM integration was added.
-
-Verification for this preparation: 138 local tests pass and 15 PostgreSQL integration tests are pending a test server. CI provisions PostgreSQL 17 for those checks. Supabase migrations have now been applied and live SQL protections verified for project `ulyopcyopyiaquarczua`. Runtime credentials, the Flask connection and hosted deployment still need configuration. Prior `docs/validation.json` describes the previous merged build; current deployment preparation is recorded in `docs/deployment-validation.json`.
-
-Supabase provisioning update: both migrations match the remote history. Live SQL permission and append-only checks passed with all fixture rows rolled back; Security Advisor reports no findings. The runtime role remains NOLOGIN until a password is set privately. `python scripts/check_database.py` checks the real application connection once its environment secret is configured. See `docs/deployment-validation.json` for the precise verification boundary.

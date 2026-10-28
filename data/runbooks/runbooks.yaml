@@ -1,0 +1,265 @@
+# Authored simulation fixtures; not the missing organizer runbooks.
+runbooks:
+- id: RB-01
+  name: Archive bounded application logs
+  tier: T1
+  applies_when:
+  - disk_used_pct >= 90
+  not_when:
+  - largest_consumer == "core"
+  steps:
+  - action: prune
+    target: logs
+    path: /data/log
+    bytes: 52428800
+    simulation_effects:
+      disk_used_pct: 65
+  health_check:
+    conditions:
+    - disk_used_pct < 85
+    timeout_seconds: 0.05
+  rollback:
+  - &id001
+    action: restore
+    target: logs
+    path: /data/log
+  reversible: true
+  capabilities:
+  - action: prune
+    target: logs
+    path: /data/log
+    bytes: 52428800
+  - *id001
+- id: RB-02
+  name: Preserve core dumps and page operator
+  tier: T3
+  applies_when:
+  - crash_dir_nonempty == true
+  not_when: []
+  steps:
+  - action: observe
+    target: crash
+    path: /data/crash
+    simulation_effects: {}
+  health_check:
+    conditions:
+    - crash_dir_nonempty == false
+    timeout_seconds: 0.05
+  rollback:
+  - &id002
+    action: observe
+    target: crash
+    path: /data/crash
+  reversible: false
+  capabilities:
+  - action: observe
+    target: crash
+    path: /data/crash
+  - *id002
+- id: RB-03
+  name: Restart isolated worker
+  tier: T1
+  applies_when:
+  - heartbeat_age_s > 60
+  not_when:
+  - restarts_last_hour >= 1
+  steps:
+  - action: restart
+    target: worker
+    restarts: 1
+    simulation_effects:
+      heartbeat_age_s: 0
+  health_check:
+    conditions:
+    - heartbeat_age_s < 10
+    timeout_seconds: 0.05
+  rollback:
+  - &id003
+    action: restore
+    target: worker
+  reversible: true
+  capabilities:
+  - action: restart
+    target: worker
+    restarts: 1
+  - *id003
+- id: RB-04
+  name: Bounded queue worker scaling
+  tier: T2
+  applies_when:
+  - queue_depth > 100
+  not_when: []
+  steps:
+  - action: scale
+    target: queue
+    replicas: 3
+    simulation_effects:
+      queue_depth: 10
+      consumer_count: 3
+  health_check:
+    conditions:
+    - queue_depth < 100
+    timeout_seconds: 0.05
+  rollback:
+  - &id004
+    action: restore
+    target: queue
+  reversible: true
+  capabilities:
+  - action: scale
+    target: queue
+    replicas: 3
+  - *id004
+- id: RB-05
+  name: Rotate staging certificate
+  tier: T2
+  applies_when:
+  - cert_expires_in_hours < 24
+  not_when: []
+  steps:
+  - action: rotate
+    target: cert
+    path: /data/certs
+    simulation_effects:
+      cert_expires_in_hours: 720
+  health_check:
+    conditions:
+    - cert_expires_in_hours > 24
+    timeout_seconds: 0.05
+  rollback:
+  - &id005
+    action: restore
+    target: cert
+    path: /data/certs
+  reversible: true
+  capabilities:
+  - action: rotate
+    target: cert
+    path: /data/certs
+  - *id005
+- id: RB-06
+  name: Clean expired temporary objects
+  tier: T0
+  applies_when:
+  - tmp_used_pct >= 90
+  not_when: []
+  steps:
+  - action: cleanup
+    target: temp
+    path: /data/tmp
+    bytes: 52428800
+    simulation_effects:
+      tmp_used_pct: 30
+  health_check:
+    conditions:
+    - tmp_used_pct < 85
+    timeout_seconds: 0.05
+  rollback:
+  - &id006
+    action: restore
+    target: temp
+    path: /data/tmp
+  reversible: true
+  capabilities:
+  - action: cleanup
+    target: temp
+    path: /data/tmp
+    bytes: 52428800
+  - *id006
+- id: RB-07
+  name: Replication lag diagnostic escalation
+  tier: T3
+  applies_when:
+  - replication_lag_s > 30
+  not_when: []
+  steps:
+  - action: observe
+    target: replica
+    simulation_effects: {}
+  health_check:
+    conditions:
+    - replication_lag_s < 10
+    timeout_seconds: 0.05
+  rollback:
+  - &id007
+    action: observe
+    target: replica
+  reversible: false
+  capabilities:
+  - action: observe
+    target: replica
+  - *id007
+- id: RB-08
+  name: Recycle isolated connection pool
+  tier: T2
+  applies_when:
+  - pool_used_pct > 90
+  not_when:
+  - idle_in_txn_count > 0
+  steps:
+  - action: recycle
+    target: pool
+    simulation_effects:
+      pool_used_pct: 30
+  health_check:
+    conditions:
+    - pool_used_pct < 75
+    timeout_seconds: 0.05
+  rollback:
+  - &id008
+    action: restore
+    target: pool
+  reversible: true
+  capabilities:
+  - action: recycle
+    target: pool
+  - *id008
+- id: RB-09
+  name: Roll back recent application release
+  tier: T2
+  applies_when:
+  - recent_deploy_minutes < 5
+  not_when: []
+  steps:
+  - action: deploy
+    target: app
+    simulation_effects:
+      app_healthy: true
+      recent_deploy_minutes: 999
+  health_check:
+    conditions:
+    - app_healthy == true
+    timeout_seconds: 0.05
+  rollback:
+  - &id009
+    action: restore
+    target: app
+  reversible: true
+  capabilities:
+  - action: deploy
+    target: app
+  - *id009
+- id: RB-10
+  name: Refresh isolated DNS cache
+  tier: T1
+  applies_when:
+  - resolution_failures_1m > 10
+  not_when: []
+  steps:
+  - action: refresh
+    target: dns
+    simulation_effects:
+      resolution_failures_1m: 0
+  health_check:
+    conditions:
+    - resolution_failures_1m == 0
+    timeout_seconds: 0.05
+  rollback:
+  - &id010
+    action: restore
+    target: dns
+  reversible: true
+  capabilities:
+  - action: refresh
+    target: dns
+  - *id010

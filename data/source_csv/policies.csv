@@ -1,0 +1,11 @@
+policy_id,runbook_id,risk_level,auto_execute,approval_required,approval_role,allowed_environment,max_attempts,timeout_seconds,cooldown_seconds,rollback_required,change_record_required,kill_switch_enforced,policy_version
+POL_RB001,RB001,low,True,False,none,"sandbox,staging,production",2,300,300,True,True,True,2026.10.1
+POL_RB002,RB002,medium,False,True,sre_on_call,"sandbox,staging,production",1,600,300,True,True,True,2026.10.1
+POL_RB003,RB003,low,True,False,none,"sandbox,staging,production",2,300,300,True,True,True,2026.10.1
+POL_RB004,RB004,medium,False,True,sre_on_call,"sandbox,staging,production",1,360,300,True,True,True,2026.10.1
+POL_RB005,RB005,high,False,True,incident_commander,"staging,sandbox",1,900,900,True,True,True,2026.10.1
+POL_RB006,RB006,medium,False,True,sre_on_call,"sandbox,staging,production",1,360,300,True,True,True,2026.10.1
+POL_RB007,RB007,high,False,True,incident_commander,"staging,sandbox",1,600,900,True,True,True,2026.10.1
+POL_RB008,RB008,medium,False,True,sre_on_call,"sandbox,staging,production",1,600,300,True,True,True,2026.10.1
+POL_RB009,RB009,high,False,True,incident_commander,"staging,sandbox",1,600,900,True,True,True,2026.10.1
+POL_RB010,RB010,low,True,False,none,"sandbox,staging,production",2,300,300,True,True,True,2026.10.1

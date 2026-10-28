@@ -1,0 +1,52 @@
+{% extends 'base.html' %}{% block content %}
+<section class="page-heading">
+  <div>
+    <div class="eyebrow"><span class="eyebrow-line"></span> AO-04 / SIMULATION SCORECARD</div>
+    <h1>Evaluation <span>results.</span></h1>
+    <p class="page-subtitle">A repeatable scorecard for the six authored safety scenarios. Each case runs in a fresh, isolated mock environment.</p>
+  </div>
+  <div class="heading-meta"><span class="meta-label">SCENARIOS</span><code>{{ evaluation.scenario_count }} / {{ evaluation.scenario_count }}</code><span class="meta-divider"></span><span class="meta-label">MODE</span><span class="refresh-value">SIMULATION ONLY</span></div>
+</section>
+
+<section class="evaluation-banner panel {{ 'evaluation-pass' if evaluation.all_passed else 'evaluation-fail' }}">
+  <div class="evaluation-banner-icon">{{ '✓' if evaluation.all_passed else '!' }}</div>
+  <div><div class="eyebrow">DEMO SCENARIO CHECK</div><h2>{{ evaluation.passed_count }} of {{ evaluation.scenario_count }} scenarios passed</h2><p>{{ evaluation.scope }}</p></div>
+  <span class="evaluation-status">{{ 'ALL CHECKS PASSED' if evaluation.all_passed else 'REVIEW REQUIRED' }}</span>
+</section>
+
+<section class="evaluation-metrics" aria-label="Evaluation summary metrics">
+  <article class="evaluation-metric panel"><span class="eyebrow">AUTONOMOUS RESOLUTION</span><strong>{{ evaluation.automatic_resolutions }}<small> / {{ evaluation.automatic_eligible }}</small></strong><p>Eligible low-risk scenario resolved without approval.</p></article>
+  <article class="evaluation-metric panel"><span class="eyebrow">HUMAN APPROVAL</span><strong>{{ evaluation.approved_resolutions }}<small> / {{ evaluation.approval_required }}</small></strong><p>Approval-required scenarios resolved after review.</p></article>
+  <article class="evaluation-metric panel"><span class="eyebrow">SAFE ESCALATION</span><strong>{{ evaluation.safe_stops }}<small> / {{ evaluation.safe_stop_scenarios }}</small></strong><p>Refused or ambiguous scenarios stopped without adapter actions.</p></article>
+  <article class="evaluation-metric panel"><span class="eyebrow">VERIFIED ROLLBACK</span><strong>{{ evaluation.verified_rollbacks }}<small> / {{ evaluation.rollback_attempts }}</small></strong><p>Failed or interrupted actions restored and verified.</p></article>
+  <article class="evaluation-metric panel"><span class="eyebrow">UNAUTHORIZED ACTIONS</span><strong>{{ evaluation.unsafe_actions }}<small> / {{ evaluation.no_action_scenarios }}</small></strong><p>Adapter calls in cases expected to refuse or escalate before execution.</p></article>
+</section>
+
+<section class="evaluation-evidence panel">
+  <div class="section-head">
+    <div><div class="eyebrow">01 / SCENARIO EVIDENCE</div><h2>Run-by-run results</h2><p>Expected behavior is compared with the actual outcome, rollback, and audit record.</p></div>
+    <span class="evaluation-audit">{{ evaluation.audit_completeness }}% audit completeness<br><small>{{ evaluation.complete_audits }} / {{ evaluation.audit_records }} complete records</small></span>
+  </div>
+  <div class="evaluation-table-wrap">
+    <table class="evaluation-table">
+      <thead><tr><th>SCENARIO</th><th>POLICY PATH</th><th>DECISION</th><th>EXPECTED</th><th>ACTUAL</th><th>ROLLBACK</th><th>AUDIT</th><th>CHECK</th></tr></thead>
+      <tbody>
+      {% for item in evaluation.results %}
+        <tr>
+          <td><strong>{{ item.name }}</strong><small>{{ item.adapter_actions }} simulated adapter action{{ '' if item.adapter_actions == 1 else 's' }}</small></td>
+          <td>{{ {'automatic':'Automatic','approval':'Human approval','safe_stop':'Safe stop','rollback':'Rollback'}[item.path] }}</td>
+          <td><span class="evaluation-outcome">{{ item.decision }}</span></td>
+          <td><span class="evaluation-outcome">{{ item.expected }}</span></td>
+          <td><span class="evaluation-outcome {{ 'outcome-good' if item.outcome == 'RESOLVED' else 'outcome-warn' }}">{{ item.outcome }}</span></td>
+          <td>{{ item.rollback }}</td>
+          <td>{{ 'Complete' if item.audit_complete else 'Incomplete' }}</td>
+          <td><span class="evaluation-check {{ 'check-pass' if item.passed else 'check-fail' }}">{{ 'PASS' if item.passed else 'FAIL' }}</span></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<p class="evaluation-footnote"><strong>How to read this:</strong> these counts describe only the bundled, authored demo scenarios and mock adapter. They are not real-world resolution rates, production safety certification, or proof against organizer-provided scenarios.</p>
+{% endblock %}

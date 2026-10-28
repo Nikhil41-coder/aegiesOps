@@ -1,0 +1,100 @@
+{
+  "generated_at": "2026-10-28T17:19:03+00:00",
+  "python": "3.12.5",
+  "packages": {
+    "Flask": "3.1.3",
+    "SQLAlchemy": "2.1.6",
+    "PyYAML": "6.0.3",
+    "pytest": "9.2.0"
+  },
+  "pytest_passed": 112,
+  "authored_scenarios_passed": 13,
+  "cold_runbooks_passed": 3,
+  "demo_cases_passed": 6,
+  "original_input_files_preserved_byte_for_byte": 8,
+  "docker_required": false,
+  "live_docker_execution": "DISABLED: authoritative environment and workload credentials not supplied",
+  "organizer_scenario_compliance": "UNVERIFIED: organizer YAML and S01-S13 not supplied",
+  "browser_visual_verification": {
+    "status": "NOT_RUN",
+    "reason": "Chromium was not installed; the browser download returned an unusable archive"
+  },
+  "http_and_template_verification": "PASSED: all five pages and authenticated control flows",
+  "checks": [
+    {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-m",
+        "pytest",
+        "-q"
+      ],
+      "exit_code": 0,
+      "stdout_summary": "112 passed in 16.16s",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "scripts/demo.py"
+      ],
+      "exit_code": 0,
+      "stdout_summary": "All six demonstrations completed.",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "scripts/demo.py",
+        "--dry-run"
+      ],
+      "exit_code": 0,
+      "stdout_summary": "All six demonstrations completed.",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "scripts/http_smoke.py"
+      ],
+      "exit_code": 0,
+      "stdout_summary": "HTTP smoke passed: five pages, assets, resolve, approve, deny, kill/refuse/release",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-m",
+        "aegisops",
+        "--fault",
+        "log_full",
+        "--dry-run"
+      ],
+      "exit_code": 0,
+      "stdout_summary": "}",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "aegisops/web/static/app.js"
+      ],
+      "exit_code": 0,
+      "stdout_summary": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-m",
+        "compileall",
+        "-q",
+        "aegisops",
+        "scripts"
+      ],
+      "exit_code": 0,
+      "stdout_summary": "",
+      "stderr": ""
+    }
+  ]
+}

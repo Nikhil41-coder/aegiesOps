@@ -1,0 +1,78 @@
+{% extends 'base.html' %}{% block content %}
+<section class="page-heading dashboard-meta">
+  <div><div class="eyebrow"><span class="eyebrow-line"></span> INCIDENT OPERATIONS / CONTROL ROOM</div><h1>Incident <span>command.</span></h1><p class="page-subtitle">Review system signals, test guarded remediation, and preserve a complete response trail.</p></div>
+  <div class="heading-meta"><span class="meta-label">ENVIRONMENT ID</span><code>SIM-LOCAL-01</code><span class="meta-divider"></span><span class="meta-label">AUTO REFRESH</span><span class="refresh-value"><span class="live-dot"></span> EVERY 3S</span></div>
+</section>
+<section class="hero-strip">
+  <div class="hero-copy">
+    <span class="hero-kicker"><span class="hero-kicker-dot"></span> RESPONSE POSTURE / CURRENT</span>
+    <h2>See the signal.<br><span>Move with confidence.</span></h2>
+    <p>Investigate simulated incidents, apply deterministic policy, and keep every remediation inside a human-approved boundary.</p>
+    <div class="hero-actions"><a class="button button-primary" href="#scenario-lab">Open response lab <span>↘</span></a><a class="hero-text-link" href="/audit">Explore event history <span>↗</span></a></div>
+    <div class="hero-status"><span class="status-ring"><span></span></span><div><b id="system-state" class="hero-state {{ 'danger-text' if status.kill_switch else '' }}">{{ 'AUTOMATION HALTED' if status.kill_switch else 'POLICY GUARD ACTIVE' }}</b><small id="hero-state-caption">{{ 'Operator kill switch engaged' if status.kill_switch else 'No live infrastructure connected' }}</small></div></div>
+  </div>
+  <div class="hero-visual" aria-hidden="true">
+    <div class="visual-grid"></div>
+    <div class="preview-topbar">
+      <span class="preview-brand"><i></i> AEGIS<span>OPS</span></span>
+      <div class="preview-tabs"><span class="active">Overview</span><span>Signals</span><span>Response</span><span>History</span></div>
+      <span class="preview-sim">LOCAL SIMULATION</span>
+    </div>
+    <div class="preview-heading"><div><small>CONTROL ROOM / SYSTEM HEALTH</small><b>Response overview</b></div><span class="preview-window-state"><i></i> POLICY GUARDED</span></div>
+    <svg class="signal-chart" viewBox="0 0 460 190" preserveAspectRatio="none">
+      <defs><linearGradient id="signal-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#aa9fff" stop-opacity=".34"/><stop offset="1" stop-color="#aa9fff" stop-opacity="0"/></linearGradient></defs>
+      <path class="signal-area" d="M0 148 C28 142 30 134 54 139 S82 145 98 125 S127 126 145 111 S169 123 188 101 S216 108 235 85 S262 103 279 81 S307 87 324 61 S348 76 366 54 S395 66 413 38 S440 46 460 20 L460 190 L0 190 Z"/>
+      <path class="signal-line" d="M0 148 C28 142 30 134 54 139 S82 145 98 125 S127 126 145 111 S169 123 188 101 S216 108 235 85 S262 103 279 81 S307 87 324 61 S348 76 366 54 S395 66 413 38 S440 46 460 20"/>
+      <circle class="signal-point" cx="324" cy="61" r="5"/>
+      <circle class="signal-halo" cx="324" cy="61" r="12"/>
+    </svg>
+    <div class="visual-caption"><span><i></i> SIMULATED SIGNAL</span><b>Policy monitor <small>READY</small></b></div>
+    <div class="visual-float visual-float-top"><span class="float-icon">↗</span><span>SAFE EXECUTION<small>BOUNDARY CHECKS ON</small></span></div>
+    <div class="visual-float visual-float-bottom"><span class="float-icon">✓</span><span>HUMAN AUTHORITY<small>ALWAYS IN CONTROL</small></span></div>
+    <div class="preview-metric preview-metric-a"><small>APPROVALS</small><b>{{ status.approvals|length }}</b><span>action-bound</span></div>
+    <div class="preview-metric preview-metric-b"><small>AUDIT EVENTS</small><b>{{ status.audit_events }}</b><span>recorded</span></div>
+  </div>
+</section>
+<section class="stats-grid">
+  <article class="stat-card"><div class="stat-top"><span class="stat-label">ACTION BUDGET</span><span class="stat-icon icon-lime">↗</span></div><div class="stat-number"><strong id="action-count">{{ status.actions_in_window }}</strong><span class="stat-total">/ {{ status.rate_limit.max_actions }}</span></div><div class="stat-foot"><span>Rolling rate limit</span><span class="stat-tag">PER {{ status.rate_limit.window_seconds }} SEC</span></div><div class="budget-track"><i id="budget-fill" class="width-{{ ([100, (status.actions_in_window / status.rate_limit.max_actions * 100) if status.rate_limit.max_actions else 0]|min)|int }}"></i></div></article>
+  <article class="stat-card"><div class="stat-top"><span class="stat-label">HUMAN AUTHORITY</span><span class="stat-icon icon-amber">◎</span></div><div class="stat-number"><strong id="pending-count">{{ status.approvals|length }}</strong><span class="stat-unit">pending</span></div><div class="stat-foot"><span>Action-bound requests</span><a href="/approvals">Review queue ↗</a></div><div class="mini-bars amber-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></article>
+  <article class="stat-card"><div class="stat-top"><span class="stat-label">AUDIT EVENTS</span><span class="stat-icon icon-blue">≋</span></div><div class="stat-number"><strong id="audit-count">{{ status.audit_events }}</strong><span class="stat-unit">records</span></div><div class="stat-foot"><span>Decisions & change snapshots</span><a href="/audit">Inspect trace ↗</a></div><div class="mini-bars blue-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></article>
+  <article class="stat-card"><div class="stat-top"><span class="stat-label">CIRCUIT BREAKER</span><span class="stat-icon icon-red">⌁</span></div><div class="stat-number"><strong id="circuit-state" class="circuit-value">{{ 'OPEN' if status.circuit_open else 'CLOSED' }}</strong></div><div class="stat-foot"><span>Failure threshold guard</span><span id="circuit-tag" class="stat-tag {{ 'tag-danger' if status.circuit_open else '' }}">{{ 'TRIPPED' if status.circuit_open else 'STANDBY' }}</span></div><div class="circuit-line"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></article>
+</section>
+<section class="workspace-grid">
+  <div id="system-signals" class="panel observation-panel">
+    <div class="section-head"><div><div class="eyebrow">01 / SYSTEM SIGNALS</div><h2>Environment observations</h2><p>Current state snapshot from the simulated adapter.</p></div><span class="small-live"><span class="live-dot"></span> SIMULATED</span></div>
+    <div class="telemetry-banner"><span class="telemetry-symbol">⌁</span><span><b>Observation layer</b><small>Read-only signals · no mutation performed</small></span><span class="mono-tag">SOURCE / MOCK ADAPTER</span></div>
+    <div id="observations" class="observation-grid">{% for k,v in status.state.items() %}<div class="observation-item"><span>{{ k.replace('_',' ') }}</span><strong>{{ v if v is not none else 'UNKNOWN' }}</strong><small>OBSERVED VALUE</small></div>{% endfor %}</div>
+    <div class="panel-bottom-note"><span class="tiny-check">✓</span> State is re-evaluated before execution boundaries.</div>
+  </div>
+  <div class="control-column">
+    <section class="panel kill-panel">
+      <div class="section-head compact"><div><div class="eyebrow">02 / EMERGENCY CONTROL</div><h2>Kill switch</h2></div><span class="critical-chip">CRITICAL</span></div>
+      <p>Halt new automated actions. Active work must stop at its next safe boundary and enter compensation where available.</p>
+      <div class="kill-readout"><span class="kill-indicator"></span><span><b>GLOBAL EXECUTION GATE</b><small>File & environment switches remain authoritative.</small></span></div>
+      <button id="kill-toggle" class="button {{ 'button-quiet' if status.dashboard_kill else 'button-danger' }}" data-enabled="{{ 'false' if status.dashboard_kill else 'true' }}">{{ 'Release dashboard switch' if status.dashboard_kill else 'HALT AUTOMATION' }} <span>↗</span></button>
+    </section>
+    <section id="scenario-lab" class="panel fault-panel">
+      <div class="section-head compact"><div><div class="eyebrow">03 / SCENARIO LAB</div><h2>Fault injection</h2></div><span class="demo-chip">SIM ONLY</span></div>
+      <p>Inject a controlled fault, then evaluate the policy response.</p>
+      <label class="field-label" for="fault">SELECT TEST SCENARIO</label>
+      <div class="select-wrap"><span>⌘</span><select id="fault">{% for fault in faults %}<option value="{{ fault }}">{{ fault.replace('_',' ') }}</option>{% endfor %}</select></div>
+      <div class="fault-actions"><button id="inject" class="button button-quiet">Inject fault <span>＋</span></button><button id="run" class="button button-primary">Run detection <span>→</span></button></div>
+      <button id="dry-run" class="dry-run-button"><span>◉</span> Preview policy decision <span class="dry-note">NO MUTATION</span></button>
+    </section>
+  </div>
+</section>
+<section class="panel result-panel">
+  <div class="section-head"><div><div class="eyebrow">04 / DECISION TRACE</div><h2>Latest detection result</h2><p>Inspect the exact decision payload returned by the policy engine.</p></div><a class="inline-link" href="/audit">Full audit trail <span>↗</span></a></div>
+  <div class="result-terminal"><div class="terminal-bar"><span class="terminal-dots"><i></i><i></i><i></i></span><span>decision-output.json</span><span class="terminal-readonly">READ ONLY</span></div><pre id="result">{
+  "status": "AWAITING_INPUT",
+  "message": "Inject a simulated fault and run detection to inspect the policy decision.",
+  "safety": "No action has been executed."
+}</pre></div>
+</section>
+<section class="bottom-grid">
+  <div class="panel protocol-panel"><div class="eyebrow">CONTROL PROTOCOL</div><h2>How AegisOps responds</h2><div class="protocol-steps"><div><span>01</span><b>Observe</b><small>Read current state</small></div><i>→</i><div><span>02</span><b>Evaluate</b><small>Apply deterministic policy</small></div><i>→</i><div><span>03</span><b>Authorize</b><small>Approval or bounded auto</small></div><i>→</i><div><span>04</span><b>Verify</b><small>Health check & audit</small></div></div></div>
+  <div class="panel scope-panel"><div class="eyebrow">SCOPE / PROVENANCE</div><h2>Simulation first.</h2><p>Ten authored demo runbooks are included. These fixtures are not the organizer's source-of-truth policy.</p><a href="/runbooks">Inspect runbook registry <span>↗</span></a></div>
+</section>
+{% endblock %}

@@ -1,0 +1,49 @@
+[
+  {
+    "file": "data/source_csv/README.md",
+    "sha256": "b93b1d6bdab3c5f594fefff702cf3ba691a9ffb665f1e1c75c67a23744874e28",
+    "bytes": 2525
+  },
+  {
+    "file": "data/source_csv/approvals.csv",
+    "sha256": "129c9203602e798edef3026e2a36aac220cf12c830df86fc2c2bf96605848675",
+    "bytes": 248162,
+    "data_rows": 1633
+  },
+  {
+    "file": "data/source_csv/audit_events.csv",
+    "sha256": "eab4b269ac18d15cdbea01bb764b89722ba4c044c3f3136584773025dc3b3f41",
+    "bytes": 2224555,
+    "data_rows": 19644
+  },
+  {
+    "file": "data/source_csv/execution_actions.csv",
+    "sha256": "bfff80b5ee58302e7b78b3b7bd1910661e5734c359b58abe449eff6abecfff12",
+    "bytes": 340507,
+    "data_rows": 2020
+  },
+  {
+    "file": "data/source_csv/incidents.csv",
+    "sha256": "15f42e0948eb6348016288273a1a9dd88deccd361e8648f6181b99d6ca71efe3",
+    "bytes": 645390,
+    "data_rows": 3000
+  },
+  {
+    "file": "data/source_csv/metrics.csv",
+    "sha256": "cdef72f46f4b3401dadfbcf3cfa64e5232a0649ba78cf9f78150603d5cad94b0",
+    "bytes": 294115,
+    "data_rows": 3000
+  },
+  {
+    "file": "data/source_csv/policies.csv",
+    "sha256": "9c4919ed69d43979c48d8453b47548fc5d642b5688db2b9063970c9b71608951",
+    "bytes": 1283,
+    "data_rows": 10
+  },
+  {
+    "file": "data/source_csv/runbooks.csv",
+    "sha256": "72c9188ecb942f01e00b15aabe38ce15d550c34eef84ae1c49006068aa69adf0",
+    "bytes": 1583,
+    "data_rows": 10
+  }
+]

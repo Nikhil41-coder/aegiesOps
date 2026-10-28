@@ -1,0 +1,11 @@
+runbook_id,incident_type,name,risk_level,allowlisted_action,verification_rule,compensation_action,service_category,max_attempts,timeout_seconds
+RB001,worker_not_running,Restart isolated background worker,low,restart_worker,worker_health_ok,restart_worker,worker,2,300
+RB002,disk_pressure,Clear allowlisted application cache,medium,purge_approved_cache,disk_usage_below_85,restore_cache_snapshot,storage,1,600
+RB003,stale_temp_files,Remove expired temp objects,low,remove_expired_temp,disk_usage_below_85,restore_temp_snapshot,storage,2,300
+RB004,high_cpu,Restart noncritical batch processor,medium,restart_batch,cpu_below_80,restart_previous_batch,compute,1,360
+RB005,app_healthcheck_failed,Roll back recent app deployment,high,rollback_deployment,http_200_and_latency_ok,redeploy_previous_release,application,1,900
+RB006,memory_pressure,Restart memory-leaking demo service,medium,restart_demo_service,memory_below_80,restart_previous_service,memory,1,360
+RB007,expired_demo_certificate,Rotate staging TLS certificate,high,rotate_staging_cert,certificate_valid,restore_previous_cert,security,1,600
+RB008,queue_backlog,Scale demo worker replicas within bounds,medium,scale_workers_bounded,queue_backlog_below_100,restore_replica_count,queue,1,600
+RB009,database_connection_saturation,Recycle isolated connection pool,high,recycle_connection_pool,db_connections_below_75,restore_connection_config,database,1,600
+RB010,unhealthy_demo_container,Restart designated demo container,low,restart_allowlisted_container,container_health_ok,restore_previous_container,container,2,300

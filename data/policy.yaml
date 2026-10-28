@@ -1,0 +1,43 @@
+# Authored demo policy; organizer policy was not supplied.
+version: demo-1-NOT-ORGANIZER
+tiers:
+  T0: AUTO
+  T1: AUTO
+  T2: NEEDS_APPROVAL
+  T3: REFUSE
+blast_radius:
+  targets:
+  - logs
+  - crash
+  - worker
+  - queue
+  - cert
+  - temp
+  - replica
+  - pool
+  - app
+  - dns
+  allowed_paths:
+  - /data/log
+  - /data/tmp
+  - /data/certs
+  - /data/cache
+  protected_paths:
+  - /data/crash
+  - /etc
+  - /var/lib/database
+  max_bytes: 104857600
+  max_replicas: 3
+  max_restarts: 1
+rate_limit:
+  max_actions: 5
+  window_seconds: 3600
+circuit_breaker:
+  failure_threshold: 3
+  reset_seconds: 300
+approval:
+  timeout_minutes: 5
+ambiguity:
+  min_confidence: 0.85
+  on_ambiguity: ESCALATE
+kill_switch: true
