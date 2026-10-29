@@ -7,3 +7,5 @@ __pycache__/
 instance/
 build/
 *.egg-info/
+.env
+data/chroma_db/

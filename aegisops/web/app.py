@@ -8,12 +8,13 @@ from flask import Flask, jsonify, render_template, request
 from ..adapters.mock import MockAdapter, FAULTS
 from ..audit import AuditStore, check_complete, completeness_score
 from ..config import DATABASE_URL, MODE
+from ..copilot import AegisOpsCopilot, get_full_incident_dossier
 from ..evaluation import run_evaluation
 from ..orchestrator import Engine
 from ..policy import Decision
 
 
-def create_app(engine=None, operator_token=None):
+def create_app(engine=None, operator_token=None, copilot=None):
     app = Flask(__name__)
     if engine is None:
         if MODE != "simulate":
@@ -29,6 +30,14 @@ def create_app(engine=None, operator_token=None):
         else os.getenv("AEGISOPS_OPERATOR_TOKEN", "")
     )
     actor = os.getenv("AEGISOPS_APPROVER", "local-operator")
+
+    copilot_service = copilot
+
+    def get_copilot():
+        nonlocal copilot_service
+        if copilot_service is None:
+            copilot_service = AegisOpsCopilot()
+        return copilot_service
 
     @app.after_request
     def security_headers(response):
@@ -130,6 +139,10 @@ def create_app(engine=None, operator_token=None):
             "evaluation.html", evaluation=run_evaluation(), **context()
         )
 
+    @app.get("/copilot")
+    def copilot_view():
+        return render_template("copilot.html", **context())
+
     @app.get("/api/status")
     def api_status():
         return jsonify(status())
@@ -151,6 +164,23 @@ def create_app(engine=None, operator_token=None):
             ],
             changes=engine.store.changes(),
         )
+
+    @app.post("/api/copilot/chat")
+    def api_copilot_chat():
+        data = body()
+        query = data.get("query", "").strip()
+        if not query:
+            return jsonify(error="Query cannot be empty"), 400
+        service = get_copilot()
+        resp = service.ask(query)
+        return jsonify(resp.to_dict())
+
+    @app.get("/api/copilot/incident/<incident_id>")
+    def api_copilot_incident(incident_id):
+        dossier = get_full_incident_dossier(incident_id)
+        if not dossier:
+            return jsonify(error=f"Incident '{incident_id}' not found"), 404
+        return jsonify(dossier)
 
     @app.post("/api/inject")
     @operator_only

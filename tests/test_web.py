@@ -26,6 +26,7 @@ def post(client, url, data):
         "/evaluation",
         "/audit",
         "/runbooks",
+        "/copilot",
         "/api/status",
         "/api/audit",
         "/static/app.css",

@@ -51,6 +51,15 @@ python scripts/demo.py --dry-run
 
 Dry runs record the decision and plan, with no approval creation, execution reservation, or adapter action. CLI/demo databases are ephemeral. The Flask dashboard persists event history in `aegisops.db`; mock environment state is intentionally in memory.
 
+## AegisOps Copilot
+
+AegisOps Copilot provides safety-governed operational intelligence and bounded Agentic RAG across the dataset runbooks, policies, and incident history.
+
+- **Interface**: Navigate to `http://127.0.0.1:5000/copilot` or select `06 Copilot` in the workspace navigation.
+- **Dataset Ingestion**: `python -m aegisops.copilot --ingest`
+- **Vector Indexing**: `python -m aegisops.copilot --index`
+- **Operations Guide**: See [COPILOT_GUIDE.md](COPILOT_GUIDE.md) for full setup, Gemini configuration, operations, test suites, and security invariant verification.
+
 ## Architecture
 
 ```mermaid
