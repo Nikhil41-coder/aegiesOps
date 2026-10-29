@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="page-heading">
+  <div>
+    <div class="eyebrow"><span class="eyebrow-line"></span> ASSISTANT / OPERATIONAL INTELLIGENCE</div>
+    <h1>AegisOps Copilot</h1>
+    <p class="page-subtitle">Bounded Agentic RAG for policy explanation, runbook guidance, and incident evidence investigation.</p>
+  </div>
+  <div class="heading-meta">
+    <span class="meta-label">READ-ONLY ACCESS</span>
+    <code>SAFETY GOVERNED</code>
+  </div>
+</section>
+
+<div class="page-banner">
+  <span class="banner-symbol">◈</span>
+  <div>
+    <b>Grounded in verified operational evidence (Synthetic Demonstration Data).</b>
+    <p>Answers are synthesized exclusively from authorized runbooks, policies, and recorded incident history. Copilot cannot mutate system state or execute actions.</p>
+  </div>
+  <span class="mono-tag">SYNTHETIC DEMONSTRATION DATASET</span>
+</div>
+
+<div class="copilot-layout">
+  <div class="copilot-main panel">
+    <div class="copilot-header">
+      <div class="copilot-status">
+        <span class="live-dot"></span>
+        <span>COPILOT KNOWLEDGE ENGINE</span>
+        <span class="tag tag-quiet">READY</span>
+      </div>
+      <button id="copilot-clear" class="button button-quiet button-small" type="button">Clear history</button>
+    </div>
+
+    <!-- Suggested question chips -->
+    <div class="copilot-suggestions-bar">
+      <span class="suggestions-label">SUGGESTED INQUIRIES:</span>
+      <div class="suggestion-chips">
+        <button type="button" class="suggestion-chip" data-prompt="Explain a runbook: show details and verification rule for RB001">Explain a runbook</button>
+        <button type="button" class="suggestion-chip" data-prompt="What policy applies to this remediation? Explain POL_RB002 for RB002">What policy applies to this remediation?</button>
+        <button type="button" class="suggestion-chip" data-prompt="Investigate a specific incident ID: show dossier for INC000001">Investigate a specific incident ID</button>
+        <button type="button" class="suggestion-chip" data-prompt="Show the approval and execution history for incident INC000001">Show the approval and execution history</button>
+        <button type="button" class="suggestion-chip" data-prompt="Explain why a remediation failed or was rolled back in incident INC000001">Explain why a remediation failed or was rolled back</button>
+        <button type="button" class="suggestion-chip" data-prompt="Summarize an incident's audit timeline for INC000001">Summarize an incident's audit timeline</button>
+      </div>
+    </div>
+
+    <!-- Message stream -->
+    <div id="chat-stream" class="chat-stream" role="log" aria-live="polite">
+      <div class="chat-message assistant-message welcome-message">
+        <div class="message-header">
+          <span class="message-author">◈ AEGISOPS COPILOT</span>
+          <span class="message-badge">HYBRID RETRIEVAL</span>
+        </div>
+        <div class="message-body">
+          <p>I am your read-only operational assistant. I can answer questions about authorized runbooks, explain policy rules, retrieve exact incident metrics, and trace execution and audit histories.</p>
+          <ul class="welcome-capabilities">
+            <li><b>Structured Retrieval:</b> Exact incident metrics, approvals, rollback receipts, and audit events.</li>
+            <li><b>Semantic Retrieval:</b> Operational runbook procedures and risk policies.</li>
+            <li><b>Guarded Abstention:</b> If an incident record is missing or evidence is contradictory, I explicitly abstain rather than speculate.</li>
+            <li><b>Safety Boundary:</b> I cannot execute shell commands, approve actions, or mutate production data.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading indicator -->
+    <div id="copilot-loading" class="copilot-loading" hidden style="display: none;">
+      <span class="loading-spinner"></span>
+      <span id="loading-text">Analyzing query and retrieving verified evidence...</span>
+    </div>
+
+    <!-- Error indicator -->
+    <div id="copilot-error-box" class="copilot-error-box" hidden style="display: none;">
+      <span class="error-icon">!</span>
+      <div class="error-content">
+        <strong id="error-title">Query processing error</strong>
+        <p id="error-details">An unexpected network or server error occurred.</p>
+      </div>
+      <button id="copilot-retry" class="button button-quiet button-small" type="button">Retry</button>
+    </div>
+
+    <!-- Input form -->
+    <form id="copilot-form" class="copilot-form">
+      <div class="input-wrap">
+        <input 
+          id="copilot-input" 
+          type="text" 
+          autocomplete="off" 
+          placeholder="Ask a question about runbooks, policies, or an incident ID (e.g. INC000001)..."
+          required
+        />
+        <button id="copilot-send" class="button button-primary" type="submit">
+          <span>Send</span>
+          <span class="btn-arrow">↗</span>
+        </button>
+      </div>
+      <div class="form-footer">
+        <small class="form-hint">Responses are strictly grounded in repository evidence. Safety guardrails prevent execution commands.</small>
+        <span class="mono-meta">AGENTIC RAG · BOUNDED</span>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

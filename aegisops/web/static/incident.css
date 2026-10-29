@@ -1526,3 +1526,340 @@ h1 span {
   .evaluation-audit { display: none; }
   .evaluation-table { min-width: 780px; }
 }
+
+/* =========================================================================
+   AegisOps Copilot — Chat & Retrieval UI
+   ========================================================================= */
+.copilot-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  max-width: 1060px;
+  margin: 0 auto;
+}
+
+.copilot-main {
+  display: flex;
+  flex-direction: column;
+  background: #0d131a;
+  border: 1px solid rgba(143, 166, 180, .16);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.copilot-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(143, 166, 180, .1);
+  background: rgba(9, 14, 20, .6);
+}
+
+.copilot-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text, #e8edf0);
+  font: 11px var(--mono);
+  letter-spacing: .05em;
+}
+
+.copilot-suggestions-bar {
+  padding: 12px 20px;
+  background: rgba(143, 166, 180, .03);
+  border-bottom: 1px solid rgba(143, 166, 180, .08);
+}
+
+.suggestions-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted, #8b9aa5);
+  font: 9px var(--mono);
+  letter-spacing: .08em;
+}
+
+.suggestion-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.suggestion-chip {
+  padding: 5px 12px;
+  background: rgba(16, 23, 32, .8);
+  border: 1px solid rgba(143, 166, 180, .16);
+  border-radius: 14px;
+  color: #b7c5ce;
+  font: 11px var(--mono);
+  cursor: pointer;
+  transition: all .15s ease;
+  white-space: nowrap;
+}
+
+.suggestion-chip:hover {
+  background: rgba(74, 222, 128, .08);
+  border-color: rgba(74, 222, 128, .35);
+  color: #86efac;
+}
+
+.chat-stream {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 20px;
+  min-height: 380px;
+  max-height: 640px;
+  overflow-y: auto;
+}
+
+.chat-message {
+  padding: 18px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.65;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .2);
+}
+
+.user-message {
+  align-self: flex-end;
+  background: rgba(22, 35, 50, .7);
+  border: 1px solid rgba(74, 222, 128, .3);
+  color: #e8edf0;
+  max-width: 82%;
+}
+
+.assistant-message {
+  align-self: flex-start;
+  background: rgba(13, 19, 27, .95);
+  border: 1px solid rgba(143, 166, 180, .14);
+  color: #d1dbe0;
+  width: 100%;
+}
+
+.welcome-message {
+  border-left: 3px solid #4ade80;
+}
+
+.welcome-capabilities {
+  margin: 12px 0 0 16px;
+  padding: 0;
+  color: var(--muted, #8b9aa5);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.welcome-capabilities li {
+  margin-bottom: 4px;
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font: 10px var(--mono);
+}
+
+.message-author {
+  color: #86efac;
+  letter-spacing: .06em;
+  font-weight: 600;
+}
+
+.message-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border: 1px solid rgba(143, 166, 180, .2);
+  border-radius: 3px;
+  color: var(--muted, #8b9aa5);
+  font-size: 9px;
+}
+
+.message-body p {
+  margin: 0 0 10px 0;
+}
+
+.message-body p:last-child {
+  margin-bottom: 0;
+}
+
+.citations-wrap {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(143, 166, 180, .1);
+}
+
+.citations-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--muted, #8b9aa5);
+  font: 9px var(--mono);
+  letter-spacing: .06em;
+}
+
+.citation-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 6px 6px 0;
+  padding: 4px 8px;
+  background: rgba(74, 222, 128, .07);
+  border: 1px solid rgba(74, 222, 128, .22);
+  border-radius: 4px;
+  color: #86efac;
+  font: 10px var(--mono);
+  text-decoration: none;
+  transition: all .15s ease;
+}
+
+.citation-pill:hover {
+  background: rgba(74, 222, 128, .16);
+  border-color: rgba(74, 222, 128, .45);
+}
+
+.citation-type {
+  opacity: .7;
+}
+
+.evidence-accordion {
+  margin-top: 12px;
+  font: 11px var(--mono);
+}
+
+.evidence-accordion summary {
+  color: var(--muted, #8b9aa5);
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.evidence-accordion summary:hover {
+  color: var(--text, #e8edf0);
+}
+
+.evidence-accordion ul {
+  margin: 8px 0 0 16px;
+  padding: 0;
+  color: #b7c5ce;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.abstain-box {
+  margin-top: 10px;
+  padding: 12px 14px;
+  background: rgba(240, 194, 123, .08);
+  border: 1px solid rgba(240, 194, 123, .25);
+  border-left: 3px solid #f0c27b;
+  border-radius: 4px;
+  color: #f0c27b;
+  font-size: 12px;
+}
+
+.copilot-loading[hidden],
+.copilot-error-box[hidden] {
+  display: none !important;
+}
+
+.copilot-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  color: #86efac;
+  font: 11px var(--mono);
+  background: rgba(74, 222, 128, .04);
+  border-top: 1px solid rgba(143, 166, 180, .08);
+}
+
+.loading-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(74, 222, 128, .2);
+  border-top-color: #4ade80;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.copilot-error-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 12px 20px;
+  padding: 12px 16px;
+  background: rgba(255, 112, 112, .1);
+  border: 1px solid rgba(255, 112, 112, .3);
+  border-radius: 6px;
+}
+
+.error-content strong {
+  display: block;
+  color: #ff8585;
+  font-size: 12px;
+}
+
+.error-content p {
+  margin: 2px 0 0 0;
+  color: #e8edf0;
+  font-size: 11px;
+}
+
+.copilot-form {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(143, 166, 180, .12);
+  background: #090e14;
+}
+
+.input-wrap {
+  display: flex;
+  gap: 10px;
+}
+
+.input-wrap input {
+  flex: 1;
+  padding: 12px 16px;
+  background: #0f1620;
+  border: 1px solid rgba(143, 166, 180, .22);
+  border-radius: 6px;
+  color: #e8edf0;
+  font-size: 13px;
+  outline: none;
+  transition: border-color .15s ease;
+}
+
+.input-wrap input:focus {
+  border-color: #4ade80;
+  box-shadow: 0 0 0 2px rgba(74, 222, 128, .15);
+}
+
+.form-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.form-hint {
+  color: var(--muted, #8b9aa5);
+  font-size: 10px;
+}
+
+.mono-meta {
+  color: var(--muted, #8b9aa5);
+  font: 9px var(--mono);
+  letter-spacing: .06em;
+}
+
+@media (max-width: 600px) {
+  .suggestion-chips {
+    flex-direction: column;
+  }
+  .user-message {
+    max-width: 95%;
+  }
+}

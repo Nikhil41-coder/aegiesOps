@@ -8,13 +8,14 @@ from flask import Flask, jsonify, render_template, request, g
 from ..adapters.mock import MockAdapter, FAULTS
 from ..audit import AuditStore, check_complete, completeness_score
 from ..config import DATABASE_URL, MODE
+from ..copilot import AegisOpsCopilot, get_full_incident_dossier
 from ..evaluation import run_evaluation
 from ..orchestrator import Engine
 from ..policy import Decision
 from .accounts import install_accounts
 
 
-def create_app(engine=None, operator_token=None):
+def create_app(engine=None, operator_token=None, copilot=None):
     app = Flask(__name__)
     if engine is None:
         if MODE != "simulate":
@@ -31,6 +32,13 @@ def create_app(engine=None, operator_token=None):
     )
     actor = os.getenv("AEGISOPS_APPROVER", "local-operator")
 
+    copilot_service = copilot
+
+    def get_copilot():
+        nonlocal copilot_service
+        if copilot_service is None:
+            copilot_service = AegisOpsCopilot()
+        return copilot_service
     auth_mode = 'token' if operator_token is not None else os.getenv('AEGISOPS_AUTH_MODE', 'supabase')
     if auth_mode not in ('supabase', 'token'):
         raise ValueError('Unknown authentication mode')
@@ -145,6 +153,9 @@ def create_app(engine=None, operator_token=None):
             "evaluation.html", evaluation=run_evaluation(), **context()
         )
 
+    @app.get("/copilot")
+    def copilot_view():
+        return render_template("copilot.html", **context())
     @app.get("/accounts")
     def accounts_page():
         return render_template("accounts.html", **context())
@@ -170,6 +181,23 @@ def create_app(engine=None, operator_token=None):
             ],
             changes=engine.store.changes(),
         )
+
+    @app.post("/api/copilot/chat")
+    def api_copilot_chat():
+        data = body()
+        query = data.get("query", "").strip()
+        if not query:
+            return jsonify(error="Query cannot be empty"), 400
+        service = get_copilot()
+        resp = service.ask(query)
+        return jsonify(resp.to_dict())
+
+    @app.get("/api/copilot/incident/<incident_id>")
+    def api_copilot_incident(incident_id):
+        dossier = get_full_incident_dossier(incident_id)
+        if not dossier:
+            return jsonify(error=f"Incident '{incident_id}' not found"), 404
+        return jsonify(dossier)
 
     @app.post("/api/inject")
     @operator_only

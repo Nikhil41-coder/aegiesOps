@@ -6,6 +6,9 @@
   <meta name="theme-color" content="#090e14">
   <title>AegisOps — Control Plane</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='incident.css', v='4') }}">
+  <script defer src="{{ url_for('static', filename='app.js', v='4') }}"></script>
+=======
   <link rel="stylesheet" href="{{ url_for('static', filename='incident.css', v='3') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='accounts.css') }}">
   <script defer src="{{ url_for('static', filename='accounts.js') }}"></script>
@@ -26,6 +29,7 @@
       <a href="/approvals" class="{{ 'selected' if request.path=='/approvals' }}"><span class="nav-icon">◎</span><span>Approval queue</span><span class="nav-count" id="sidebar-pending">{{ status.approvals|length }}</span></a>
       <a href="/evaluation" class="{{ 'selected' if request.path=='/evaluation' }}"><span class="nav-icon">◷</span><span>Evaluation</span><span class="nav-index">04</span></a>
       <a href="/audit" class="{{ 'selected' if request.path=='/audit' }}"><span class="nav-icon">≋</span><span>Audit trail</span><span class="nav-index">05</span></a>
+      <a href="/copilot" class="{{ 'selected' if request.path=='/copilot' }}"><span class="nav-icon">◈</span><span>Copilot</span><span class="nav-index">06</span></a>
       <a href="/accounts" id="accounts-nav" hidden>Manage access</a>
     </nav>
     <div class="sidebar-spacer"></div>
@@ -40,6 +44,7 @@
   <main class="main-shell">
     <header class="topbar">
       <div class="topbar-left"><button class="mobile-menu" id="mobile-menu" aria-label="Toggle navigation">☰</button><span class="crumb-root">AEGISOPS</span><span class="crumb-slash">/</span><span class="crumb-current">{{ request.path.strip('/') or 'overview' }}</span></div>
+      <div class="topbar-right"><span class="environment"><span class="environment-dot"></span> SIMULATION ENVIRONMENT</span><span class="top-divider"></span><span class="operator-label"><span class="operator-avatar">OP</span><span><b>LOCAL OPERATOR</b><small>{{ operator_name }}</small></span></span><a href="/copilot" class="button button-quiet button-small" style="text-decoration:none;">Copilot ◈</a><button id="credentials" class="button button-quiet button-small">Unlock controls <span>↗</span></button></div>
       <div class="topbar-right"><span class="environment"><span class="environment-dot"></span> SIMULATION ENVIRONMENT</span><span class="top-divider"></span><span class="operator-label"><span class="operator-avatar">OP</span><span><b>ACCOUNT</b><small id="account-identity">{{ operator_name if auth_mode == 'token' else 'Guest · view only' }}</small></span></span><button id="credentials" class="button button-quiet button-small">{{ 'Unlock controls' if auth_mode == 'token' else 'Sign in' }} <span>↗</span></button><button id="signout" class="button button-quiet button-small" hidden>Sign out</button></div>
     </header>
     <div class="provenance"><span class="provenance-mark">i</span><span><b>DEMO FIXTURES</b> Organizer YAML and ground-truth scenarios were not supplied. Execution is simulated; replace fixtures with the official policy before production use.</span></div>
