@@ -4,3 +4,5 @@ PyYAML>=6.0,<7
 pytest>=8.0,<10
 chromadb>=0.4.0
 google-genai>=0.1.0
+gunicorn==23.0.0
+

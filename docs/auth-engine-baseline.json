@@ -1,0 +1,13 @@
+{
+  "aegisops/policy.py": "1d7512c38f9582b7689adb2b8f962e3a3c19afd19f5772647c0274e153402af4",
+  "aegisops/executor.py": "d7f77162f46df90ee6607ded082eeb304f8a1ec1e01efc990d6450c8bf5d3636",
+  "aegisops/approvals.py": "d9d7768dcdfd01f55f80085c8c791fb3922999de0d4340101aba0b4b21df45bb",
+  "aegisops/orchestrator.py": "58268738858f94d0ca632a91e48782452a527423578ffe099257dd17d275becf",
+  "aegisops/audit.py": "9cc66fe5cf653255c6c51a812103d07c44bd00628a36f35962edbd74cca7b930",
+  "aegisops/killswitch.py": "3f9359346a85398cfc79fd4f99ca2b5c06c392eab455ccdac2a956c09ff5f651",
+  "aegisops/loader.py": "811ef194bb653f392c18c79d72ab914c9af8cb28138c6437c6cca18235a86b97",
+  "aegisops/observer.py": "856aad69f390d8b97cd112ba8bb037d2bc3a921f0ce3fa2181b5b17d264ac3fc",
+  "aegisops/models.py": "f045232bf564f7a71b23df85643c50d164f12f037371017df83364e302efa109",
+  "aegisops/verifier.py": "f821f3c1ef882928b42c9b591160f71547a1a0cda8adb5f15e16744c8dc3fca8",
+  "aegisops/adapters/mock.py": "351e34d9e81e88c4cb480853737d741a209b3dd30c4e5a31254d28550713592c"
+}

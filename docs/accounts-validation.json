@@ -1,0 +1,28 @@
+{
+  "generated_at": "2026-10-28T23:13:59.487467+00:00",
+  "pytest_passed": 139,
+  "previous_tests_passed": 112,
+  "engine_changed": false,
+  "live_sql": "PASS: viewer default, spoof rejection, admin checks, role freshness, session deletion rejection, append-only role audit",
+  "probe_accounts_remaining": 0,
+  "anonymous_rpc_status": 401,
+  "forged_token_rpc_status": 401,
+  "browser_provider": "Mocked; no real passwords or mail",
+  "browser_checks": [
+    {
+      "width": 1440,
+      "overflow": false,
+      "page_errors": [],
+      "flows": "viewer login, control refusal, logout, admin login, users list"
+    },
+    {
+      "width": 390,
+      "overflow": false,
+      "page_errors": [],
+      "flows": "viewer login, control refusal, logout, admin login, users list"
+    }
+  ],
+  "real_user_email_login": "PENDING owner signup and SMTP/redirect configuration",
+  "security_advisor": "No WARN/ERROR; INFO rls_enabled_no_policy for deliberately inaccessible private role history",
+  "render_deployment": "Manual deployment remains user-managed"
+}

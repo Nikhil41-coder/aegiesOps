@@ -1,0 +1,24 @@
+[hidden] { display: none !important; }
+.account-access { padding: 12px 24px; font-size: 14px; color: #cbd6e0; border-bottom: 1px solid #273344; }
+.account-locked { opacity: .65; }
+.account-panel { padding: 24px; font-size: 14px; }
+.account-user { display: grid; grid-template-columns: minmax(0, 1fr) 150px 120px; gap: 16px; align-items: center; padding: 16px 0; border-bottom: 1px solid #273344; }
+.account-user label { overflow-wrap: anywhere; font-size: 14px; }
+.account-user select, #account-email, #account-password { min-height: 44px; font-size: 15px; }
+#account-dialog { width: min(520px, calc(100vw - 32px)); max-height: 90vh; overflow-y: auto; }
+#account-dialog label { display: block; margin-top: 16px; font-size: 13px; }
+#account-dialog input { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; }
+#account-message { color: #f0c27b; font-size: 14px; line-height: 1.5; }
+#account-dialog .dialog-actions { flex-wrap: wrap; gap: 8px; }
+#account-dialog button:focus-visible, .account-user select:focus-visible { outline: 2px solid #b5ee75; outline-offset: 3px; }
+#account-identity { max-width: 230px; overflow: hidden; text-overflow: ellipsis; }
+@media(max-width: 700px) { .account-user { grid-template-columns: minmax(0, 1fr) 110px; } .account-user label { grid-column: 1 / -1; } .topbar-right { flex-wrap: wrap; } #account-identity { max-width: 160px; } }
+#account-dialog .dialog-copy { font-size: 14px; line-height: 1.6; }
+#account-dialog .eyebrow { font-size: 12px; }
+#account-dialog h2 { font-size: 24px; }
+
+.account-user button:disabled { opacity: .4; cursor: not-allowed; }
+.audit-actor { display: block; font-size: 12px; overflow-wrap: anywhere; }
+.button-google { width: 100%; justify-content: center; min-height: 44px; margin-top: 12px; background: #f2f4f7; color: #18232f; border: 1px solid #cbd6e0; font-size: 15px; }
+.button-google:hover { background: #dce5ef; color: #18232f; }
+.account-divider { text-align: center; font-size: 13px; color: #cbd6e0; margin: 16px 0; }

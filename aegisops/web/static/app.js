@@ -12,7 +12,7 @@ const feedback = (message, error = false) => {
 };
 async function api(path, data) {
   const token = sessionStorage.getItem('aegisops-token') || '';
-  const response = await fetch(path, {
+  const response = await window.aegisAuth.request(path, {
     method: 'POST',
     headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token},
     body: JSON.stringify(data)
@@ -35,7 +35,7 @@ async function perform(path, data, refresh = false) {
     actionButtons.forEach(button => { button.disabled = false; });
   }
 }
-$('#credentials')?.addEventListener('click', () => $('#token-dialog').showModal());
+if (document.body.dataset.authMode === 'token') $('#credentials')?.addEventListener('click', () => $('#token-dialog').showModal());
 $('#save-token')?.addEventListener('click', () => {
   const value = $('#operator-token').value.trim();
   if (!value) { feedback('Enter the operator token to unlock controls.', true); return; }

@@ -9,3 +9,7 @@ build/
 *.egg-info/
 .env
 data/chroma_db/
+.env
+.env.*
+!.env.example
+supabase/.temp/
