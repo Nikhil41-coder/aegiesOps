@@ -53,16 +53,20 @@ class SupabaseAccounts:
                 raw = response.read(1024 * 1024)
                 return json.loads(raw) if raw else {}
         except HTTPError as exc:
-            if exc.code == 429:
-                raise AuthFailure('Too many attempts. Please try again later.', 429) from None
             try:
                 code = json.loads(exc.read(8192)).get('error_code', '')
             except (ValueError, AttributeError):
                 code = ''
+            if code == 'over_email_send_rate_limit':
+                raise AuthFailure("Confirmation email could not be sent: this project's email-sending limit has been reached. Use Continue with Google for now. The project owner needs to configure email delivery for public signup.", 429) from None
+            if exc.code == 429:
+                raise AuthFailure('Too many authentication requests. Pause before trying again; repeated clicks will not help.', 429) from None
             if code == 'email_address_not_authorized':
-                raise AuthFailure('Email delivery is limited to project team members until custom SMTP is configured.', 503) from None
+                raise AuthFailure('Confirmation email cannot be sent to this address until the project owner configures public email delivery. Use Continue with Google for now.', 503) from None
             if code == 'email_not_confirmed':
-                raise AuthFailure('Confirm your email before signing in.', 401) from None
+                raise AuthFailure('Your email is not confirmed. Open the confirmation link in your inbox or spam folder before signing in.', 401) from None
+            if code == 'invalid_credentials':
+                raise AuthFailure('Email or password is incorrect. Use the password you created for AegisOps. If you joined with Google, use Continue with Google.', 401) from None
             if exc.code == 403:
                 raise AuthFailure('Your account cannot perform this operation.', 403) from None
             if exc.code >= 500:

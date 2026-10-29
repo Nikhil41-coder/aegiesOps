@@ -76,3 +76,8 @@ The same-origin JSON POST `/api/auth/oauth/start` allows only Google, checks tha
 Validation: 145 pytest tests pass (139 prior plus six OAuth cases), HTTP smoke and both JS syntax checks pass, and unchanged-engine hash tests pass. Tests cover challenge calculation, fixed redirects, cookie protection/consumption, missing initiation, denied exchange, unsupported/disabled provider, token-mode refusal, current identity checks and cross-origin rejection. Playwright at 1440px and 390px exercised start → mock provider redirect → real callback/exchange → viewer session, URL cleanup, email login, logout and admin role-list rendering. Screenshots were opened; no horizontal overflow or JS errors were observed. The provider navigation/token response were mocked: real Google consent and account linking remain unverified until the project owner configures credentials and performs the final login.
 
 Official setup reference: https://supabase.com/docs/guides/auth/social-sign-in/auth-google ; PKCE: https://supabase.com/docs/guides/auth/sessions/pkce-flow .
+
+
+## Signup delivery error clarification
+
+Live Auth logs showed `over_email_send_rate_limit` on `/signup` and separate `invalid_credentials` on `/token`; these are different failures. The app now distinguishes the email quota, restricted sender, unconfirmed email, wrong credentials and generic request throttling using sanitized provider error codes. It offers the working Google flow when email delivery is blocked, without bypassing confirmation or granting privileges. Actual email delivery still requires project-owner SMTP configuration; changing error wording does not repair that service. All 150 tests pass, including five provider error cases and unchanged-engine checks.

@@ -269,3 +269,27 @@ def test_google_ui_does_not_require_external_scripts(account_app):
     assert b'id="google-signin"' in response.data
     assert response.headers['Referrer-Policy'] == 'no-referrer'
     assert "script-src 'self'" in response.headers['Content-Security-Policy']
+
+
+@pytest.mark.parametrize('http_status,code,expected_status,expected_message', [
+    (429, 'over_email_send_rate_limit', 429, 'email-sending limit'),
+    (429, 'over_request_rate_limit', 429, 'Too many authentication requests'),
+    (400, 'invalid_credentials', 401, 'Email or password is incorrect'),
+    (400, 'email_not_confirmed', 401, 'Your email is not confirmed'),
+    (400, 'email_address_not_authorized', 503, 'configures public email delivery'),
+])
+def test_auth_errors_distinguish_signup_delivery_from_login(monkeypatch, http_status, code, expected_status, expected_message):
+    from urllib.error import HTTPError
+    import io
+    import json
+    import aegisops.web.accounts as accounts
+    client = SupabaseAccounts()
+    def fail(*args, **kwargs):
+        raise HTTPError('https://provider.invalid', http_status, 'PRIVATE', {},
+                        io.BytesIO(json.dumps({'error_code': code, 'msg': 'PRIVATE USER DATA'}).encode()))
+    monkeypatch.setattr(accounts, 'urlopen', fail)
+    with pytest.raises(AuthFailure) as exc:
+        client.call('/auth/v1/signup', {})
+    assert exc.value.status == expected_status
+    assert expected_message in str(exc.value)
+    assert 'PRIVATE' not in str(exc.value)
